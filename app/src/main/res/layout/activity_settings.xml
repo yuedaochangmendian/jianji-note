@@ -49,8 +49,7 @@
 
             <TextView
                 android:id="@+id/tvFontSizeLabel"
-                style="@style/SettingTitle"
-                android:paddingTop="8dp"
+                style="@style/SettingLabel"
                 android:text="@string/settings_font_size_label" />
 
             <com.google.android.material.slider.Slider
@@ -64,7 +63,7 @@
 
             <TextView
                 android:id="@+id/tvLineSpacingLabel"
-                style="@style/SettingTitle"
+                style="@style/SettingLabel"
                 android:text="@string/settings_line_spacing_label" />
 
             <com.google.android.material.slider.Slider
@@ -125,12 +124,28 @@
 
             <TextView
                 style="@style/SettingSection"
+                android:text="@string/webdav_section" />
+
+            <LinearLayout
+                android:id="@+id/rowWebdav"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/webdav_title" />
+
+                <TextView
+                    android:id="@+id/tvWebdavValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SettingSection"
                 android:text="@string/section_about" />
 
             <TextView
                 android:id="@+id/tvVersion"
-                style="@style/SettingTitle"
-                android:paddingBottom="8dp" />
+                style="@style/SettingLabel" />
 
             <TextView
                 style="@style/SettingValue"

@@ -4,9 +4,11 @@ import android.app.Application
 import com.jianji.note.data.AppDatabase
 import com.jianji.note.data.Prefs
 import com.jianji.note.data.Repository
+import com.jianji.note.net.WebDavSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class App : Application() {
 
@@ -23,6 +25,13 @@ class App : Application() {
         Prefs.init(this)
         Prefs.applyNightMode()
         Prefs.unlocked = false
+        scheduleAutoBackup()
+    }
+
+    /** 开了「启动时自动备份」且有配置的话，冷启动后静默上传一次快照。 */
+    private fun scheduleAutoBackup() {
+        if (!Prefs.webdavAutoBackup || !Prefs.webdavConfigured) return
+        appScope.launch { WebDavSync.upload(repo) }
     }
 
     companion object {

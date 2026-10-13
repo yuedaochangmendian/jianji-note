@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -14,9 +13,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.jianji.note.App
 import com.jianji.note.R
 import com.jianji.note.databinding.ActivityTrashBinding
+import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.launch
 
-class TrashActivity : AppCompatActivity() {
+class TrashActivity : BaseActivity() {
 
     private lateinit var binding: ActivityTrashBinding
 
@@ -26,6 +26,7 @@ class TrashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTrashBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applySystemBarInsets()
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

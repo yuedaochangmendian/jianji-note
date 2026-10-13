@@ -26,6 +26,8 @@
 
     <string name="toast_moved_to_trash">已移入回收站</string>
     <string name="toast_restored">已恢复</string>
+    <string name="toast_pinned">已置顶</string>
+    <string name="toast_unpinned">已取消置顶</string>
 
     <!-- 编辑器 -->
     <string name="editor_title_hint">标题</string>
@@ -68,6 +70,36 @@
     <string name="clear_done">已清空</string>
     <string name="about_version">版本 %1$s</string>
     <string name="about_desc">本地便签，免费、无广告、无登录、无会员。数据只保存在你的设备上。</string>
+
+    <!-- WebDAV 云同步 -->
+    <string name="webdav_section">云同步</string>
+    <string name="webdav_title">云同步（WebDAV）</string>
+    <string name="webdav_value_off">未配置</string>
+    <string name="webdav_value_on">已配置</string>
+    <string name="webdav_url_hint">目录地址（以 / 结尾）</string>
+    <string name="webdav_user_hint">账号</string>
+    <string name="webdav_password_hint">密码 / 第三方应用密码</string>
+    <string name="webdav_file_hint">云端文件名</string>
+    <string name="webdav_test">测试连接</string>
+    <string name="webdav_save">保存</string>
+    <string name="webdav_auto">启动时自动备份</string>
+    <string name="webdav_upload">立即上传备份</string>
+    <string name="webdav_restore">从云端恢复</string>
+    <string name="webdav_tip">坚果云：在「账户信息 → 安全选项」里添加第三方应用密码，密码栏填那个密码；目录地址填 https://dav.jianguoyun.com/dav/ 下的某个已有文件夹。\n建议使用 https 地址，http 只适合内网自建服务。</string>
+    <string name="webdav_testing">正在连接…</string>
+    <string name="webdav_test_ok">连接成功</string>
+    <string name="webdav_loading">正在读取云端目录…</string>
+    <string name="webdav_uploading">正在上传…</string>
+    <string name="webdav_upload_ok">已上传到云端</string>
+    <string name="webdav_restoring">正在下载并恢复…</string>
+    <string name="webdav_restore_ok">已恢复 %1$d 条笔记</string>
+    <string name="webdav_restore_confirm_title">覆盖本机数据</string>
+    <string name="webdav_restore_confirm_message">将用云端备份替换本机全部笔记（当前 %1$d 条）。本机数据会先被清空，确定继续？</string>
+    <string name="webdav_no_files">云端目录里没有备份文件</string>
+    <string name="webdav_pick_file">选择要恢复的备份</string>
+    <string name="webdav_last_sync">上次同步：%1$s　%2$s</string>
+    <string name="webdav_not_configured">请先填写目录地址和账号</string>
+    <string name="webdav_saved">已保存</string>
 
     <!-- 密码锁 -->
     <string name="passcode_tip_first">输入 4 位数字密码</string>

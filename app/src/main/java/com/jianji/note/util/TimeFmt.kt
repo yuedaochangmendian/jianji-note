@@ -22,6 +22,12 @@ object TimeFmt {
         }
     }
 
+    /** 云同步时间这类需要精确到分钟的场景。 */
+    fun fullDateTime(millis: Long): String {
+        if (millis <= 0L) return ""
+        return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(millis))
+    }
+
     private fun sameDay(a: Calendar, b: Calendar): Boolean =
         a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
             a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)

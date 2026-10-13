@@ -32,4 +32,27 @@ class Repository(private val db: AppDatabase) {
         noteDao.loadAll().forEach { noteDao.deleteById(it.id) }
         folderDao.loadAll().forEach { folderDao.delete(it) }
     }
+
+    /**
+     * 用备份内容整体替换本机数据（云同步恢复用）。
+     * folders 里是「备份中的原 id → 文件夹」，notes 里是「备份中的原文件夹 id → 笔记」，
+     * 重新插入时文件夹会拿到新 id，因此笔记的 folderId 需要按映射改写。
+     */
+    suspend fun replaceAll(
+        folders: List<Pair<Long, Folder>>,
+        notes: List<Pair<Long?, Note>>,
+    ): Int = db.withTransaction {
+        noteDao.loadAll().forEach { noteDao.deleteById(it.id) }
+        folderDao.loadAll().forEach { folderDao.delete(it) }
+
+        val idMap = HashMap<Long, Long>()
+        folders.forEach { (oldId, folder) ->
+            idMap[oldId] = folderDao.insert(folder)
+        }
+        val imported = notes.map { (oldFolderId, note) ->
+            note.copy(folderId = oldFolderId?.let { idMap[it] })
+        }
+        noteDao.insertAll(imported)
+        imported.size
+    }
 }

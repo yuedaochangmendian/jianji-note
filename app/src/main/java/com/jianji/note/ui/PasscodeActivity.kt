@@ -1,19 +1,20 @@
 package com.jianji.note.ui
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.jianji.note.R
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityPasscodeBinding
+import com.jianji.note.util.applySystemBarInsets
 import com.jianji.note.widget.passcode.PasscodeView
 
 /** 应用密码：MODE_SET 两次输入设置新密码，MODE_CHECK 校验已有密码。 */
-class PasscodeActivity : AppCompatActivity() {
+class PasscodeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityPasscodeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applySystemBarInsets()
 
         val mode = intent.getIntExtra(EXTRA_MODE, MODE_CHECK)
         val view = binding.passcodeView

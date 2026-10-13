@@ -16,8 +16,8 @@ android {
         applicationId = "com.jianji.note"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
     }
 
     // 必须先声明 signingConfigs，buildTypes 里才能按名字取到
@@ -93,6 +93,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.documentfile)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
     // 单元测试跑在 JVM 上，android.jar 里的 org.json 是桩实现，需要一份真实实现

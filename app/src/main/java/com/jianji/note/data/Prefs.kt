@@ -49,6 +49,41 @@ object Prefs {
 
     val passcodeEnabled: Boolean get() = passcode.isNotEmpty()
 
+    // ---- WebDAV 云同步 ----
+
+    /** 目录地址，约定以 / 结尾。 */
+    var webdavUrl: String
+        get() = sp.getString("webdav_url", "").orEmpty()
+        set(value) = sp.edit().putString("webdav_url", value.trim()).apply()
+
+    var webdavUser: String
+        get() = sp.getString("webdav_user", "").orEmpty()
+        set(value) = sp.edit().putString("webdav_user", value.trim()).apply()
+
+    /** 注意：与密码锁一样是明文存储，只做本机便于使用的存储，不做加密。 */
+    var webdavPassword: String
+        get() = sp.getString("webdav_password", "").orEmpty()
+        set(value) = sp.edit().putString("webdav_password", value).apply()
+
+    var webdavFileName: String
+        get() = sp.getString("webdav_file", "").orEmpty()
+        set(value) = sp.edit().putString("webdav_file", value.trim()).apply()
+
+    var webdavAutoBackup: Boolean
+        get() = sp.getBoolean("webdav_auto", false)
+        set(value) = sp.edit().putBoolean("webdav_auto", value).apply()
+
+    var webdavLastSync: Long
+        get() = sp.getLong("webdav_last_sync", 0L)
+        set(value) = sp.edit().putLong("webdav_last_sync", value).apply()
+
+    var webdavLastResult: String
+        get() = sp.getString("webdav_last_result", "").orEmpty()
+        set(value) = sp.edit().putString("webdav_last_result", value).apply()
+
+    val webdavConfigured: Boolean
+        get() = webdavUrl.isNotBlank() && webdavUser.isNotBlank()
+
     /** 进程内是否已解锁；冷启动时重置。 */
     var unlocked: Boolean = false
 

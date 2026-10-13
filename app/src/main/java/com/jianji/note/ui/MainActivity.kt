@@ -24,6 +24,7 @@ import com.jianji.note.data.Folder
 import com.jianji.note.data.Note
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityMainBinding
+import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -31,7 +32,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -56,6 +57,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 让出状态栏 / 导航栏高度，否则内容会和系统栏重叠
+        binding.coordinator.applySystemBarInsets()
+        binding.drawerPanel.applySystemBarInsets(horizontal = false)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -199,7 +204,13 @@ class MainActivity : AppCompatActivity() {
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.action_pin -> lifecycleScope.launch {
-                        repo.noteDao.setPinned(note.id, !note.pinned)
+                        val pinned = !note.pinned
+                        repo.noteDao.setPinned(note.id, pinned)
+                        Snackbar.make(
+                            binding.coordinator,
+                            if (pinned) R.string.toast_pinned else R.string.toast_unpinned,
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
                     }
                     R.id.action_move -> pickFolder { folderId ->
                         lifecycleScope.launch { repo.noteDao.setFolder(note.id, folderId) }

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jianji.note.App
@@ -14,12 +13,14 @@ import com.jianji.note.R
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivitySettingsBinding
 import com.jianji.note.util.Backup
+import com.jianji.note.util.TimeFmt
+import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
 
@@ -57,6 +58,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applySystemBarInsets()
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -92,6 +94,9 @@ class SettingsActivity : AppCompatActivity() {
             importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
         }
         binding.rowClear.setOnClickListener { confirmClear() }
+        binding.rowWebdav.setOnClickListener {
+            startActivity(Intent(this, WebDavActivity::class.java))
+        }
 
         binding.tvVersion.text = getString(R.string.about_version, appVersionName())
         updateSummary()
@@ -110,6 +115,11 @@ class SettingsActivity : AppCompatActivity() {
             R.string.settings_line_spacing,
             String.format(Locale.US, "%.1f", Prefs.lineSpacing),
         )
+        binding.tvWebdavValue.text = when {
+            !Prefs.webdavConfigured -> getString(R.string.webdav_value_off)
+            Prefs.webdavLastSync > 0 -> TimeFmt.fullDateTime(Prefs.webdavLastSync)
+            else -> getString(R.string.webdav_value_on)
+        }
     }
 
     private fun pickTheme() {
