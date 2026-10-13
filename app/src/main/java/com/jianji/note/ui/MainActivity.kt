@@ -1,6 +1,7 @@
 package com.jianji.note.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -27,6 +28,7 @@ import com.jianji.note.data.NoteSort
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityMainBinding
 import com.jianji.note.util.applySystemBarInsets
+import com.jianji.note.util.Exporter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -69,6 +71,14 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private val exportAllTxt = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri -> uri?.let { exportAll(it, markdown = false) } }
+
+    private val exportAllMd = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/markdown"),
+    ) { uri -> uri?.let { exportAll(it, markdown = true) } }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -77,12 +87,16 @@ class MainActivity : BaseActivity() {
         // 让出状态栏 / 导航栏高度，否则内容会和系统栏重叠
         binding.coordinator.applySystemBarInsets()
         binding.drawerPanel.applySystemBarInsets()
+        applyAppBarTint(binding.appBar)
+        UiStyle.applyBackground(binding.coordinator, R.color.bg_fallback_surface, Prefs.backgroundMain)
+        UiStyle.applyBackground(binding.drawerPanel, R.color.bg_fallback_surface, Prefs.backgroundDrawer)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu)
 
         noteAdapter = NoteListAdapter(
+            typeface = UiStyle.typeface(this),
             onClick = { note -> requestOpen(note.id) },
             onLongClick = { note, view -> showNoteMenu(note, view) },
         )
@@ -383,6 +397,10 @@ class MainActivity : BaseActivity() {
         Prefs.LAYOUT_SUMMARY -> R.id.layout_summary
         Prefs.LAYOUT_DAILY -> R.id.layout_daily
         Prefs.LAYOUT_BRIEF -> R.id.layout_brief
+        Prefs.LAYOUT_MD -> R.id.layout_md
+        Prefs.LAYOUT_MI_NOTE -> R.id.layout_mi_note
+        Prefs.LAYOUT_SMARTISAN -> R.id.layout_smartisan
+        Prefs.LAYOUT_BEAR -> R.id.layout_bear
         else -> R.id.layout_normal
     }
 
@@ -414,6 +432,12 @@ class MainActivity : BaseActivity() {
             R.id.layout_summary -> setLayout(Prefs.LAYOUT_SUMMARY)
             R.id.layout_daily -> setLayout(Prefs.LAYOUT_DAILY)
             R.id.layout_brief -> setLayout(Prefs.LAYOUT_BRIEF)
+            R.id.layout_md -> setLayout(Prefs.LAYOUT_MD)
+            R.id.layout_mi_note -> setLayout(Prefs.LAYOUT_MI_NOTE)
+            R.id.layout_smartisan -> setLayout(Prefs.LAYOUT_SMARTISAN)
+            R.id.layout_bear -> setLayout(Prefs.LAYOUT_BEAR)
+            R.id.export_all_txt -> exportAllTxt.launch("jianji-notes.txt")
+            R.id.export_all_md -> exportAllMd.launch("jianji-notes.md")
 
             else -> return super.onOptionsItemSelected(item)
         }
@@ -434,5 +458,28 @@ class MainActivity : BaseActivity() {
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    /** 把当前全部未删除的笔记导出成一个文件。 */
+    private fun exportAll(uri: Uri, markdown: Boolean) {
+        lifecycleScope.launch {
+            val notes = NoteSort.sort(repo.noteDao.loadAll().filter { it.deletedAt == null }, Prefs.sortBy)
+            val text = notes.joinToString("\n\n---\n\n") {
+                if (markdown) Exporter.toMarkdown(it) else Exporter.toPlainText(it)
+            }
+            val ok = try {
+                contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                true
+            } catch (e: Exception) {
+                false
+            }
+            toast(
+                if (ok) {
+                    getString(R.string.export_success_named, uri.lastPathSegment.orEmpty())
+                } else {
+                    getString(R.string.export_pdf_failed)
+                },
+            )
+        }
     }
 }

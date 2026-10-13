@@ -58,7 +58,33 @@
                 <item
                     android:id="@+id/layout_brief"
                     android:title="@string/layout_brief" />
+                <item
+                    android:id="@+id/layout_md"
+                    android:title="@string/layout_md" />
+                <item
+                    android:id="@+id/layout_mi_note"
+                    android:title="@string/layout_mi_note" />
+                <item
+                    android:id="@+id/layout_smartisan"
+                    android:title="@string/layout_smartisan" />
+                <item
+                    android:id="@+id/layout_bear"
+                    android:title="@string/layout_bear" />
             </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_export_all"
+        android:title="@string/menu_export"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/export_all_txt"
+                android:title="@string/export_txt" />
+            <item
+                android:id="@+id/export_all_md"
+                android:title="@string/export_md" />
         </menu>
     </item>
 

@@ -13,4 +13,20 @@
     <color name="md_quote">#FF9E9E9E</color>
     <color name="md_link">#FF1565C0</color>
     <color name="tool_text">#FF3F51B5</color>
+
+    <!-- 强调色：浅色主题下的取值 -->
+    <color name="accent_indigo">#FF3F51B5</color>
+    <color name="accent_indigo_on">#FFFFFFFF</color>
+    <color name="accent_teal">#FF00796B</color>
+    <color name="accent_teal_on">#FFFFFFFF</color>
+    <color name="accent_blue">#FF1976D2</color>
+    <color name="accent_blue_on">#FFFFFFFF</color>
+    <color name="accent_purple">#FF7B1FA2</color>
+    <color name="accent_purple_on">#FFFFFFFF</color>
+    <color name="accent_orange">#FFE64A19</color>
+    <color name="accent_orange_on">#FFFFFFFF</color>
+    <color name="accent_rose">#FFC2185B</color>
+    <color name="accent_rose_on">#FFFFFFFF</color>
+    <color name="bg_scrim">#B3FFFFFF</color>
+    <color name="bg_fallback_surface">#FFF7F7F7</color>
 </resources>

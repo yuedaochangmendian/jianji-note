@@ -16,7 +16,7 @@ import org.json.JSONObject
  */
 object Backup {
 
-    private const val FORMAT_VERSION = 2
+    private const val FORMAT_VERSION = 3
 
     class Parsed(
         /** 原文件夹 id 与文件夹内容的对应关系 */
@@ -54,6 +54,7 @@ object Backup {
                     put("pinned", note.pinned)
                     put("locked", note.locked)
                     put("markdown", note.markdown)
+                    put("images", note.images)
                     put("createdAt", note.createdAt)
                     put("updatedAt", note.updatedAt)
                     put("deletedAt", note.deletedAt ?: JSONObject.NULL)
@@ -90,6 +91,7 @@ object Backup {
                     pinned = item.optBoolean("pinned"),
                     locked = item.optBoolean("locked"),
                     markdown = item.optBoolean("markdown"),
+                    images = item.optString("images"),
                     createdAt = item.optLong("createdAt", System.currentTimeMillis()),
                     updatedAt = item.optLong("updatedAt", System.currentTimeMillis()),
                     deletedAt = if (item.isNull("deletedAt")) null else item.optLong("deletedAt"),

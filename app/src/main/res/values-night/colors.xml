@@ -8,4 +8,20 @@
     <color name="md_quote">#FF9E9E9E</color>
     <color name="md_link">#FF90CAF9</color>
     <color name="tool_text">#FF9FA8DA</color>
+
+    <!-- 强调色：深色主题下换成更亮的色调，保证对比度 -->
+    <color name="accent_indigo">#FF9FA8DA</color>
+    <color name="accent_indigo_on">#FF1A237E</color>
+    <color name="accent_teal">#FF4DB6AC</color>
+    <color name="accent_teal_on">#FF00332C</color>
+    <color name="accent_blue">#FF64B5F6</color>
+    <color name="accent_blue_on">#FF00325A</color>
+    <color name="accent_purple">#FFCE93D8</color>
+    <color name="accent_purple_on">#FF3E1046</color>
+    <color name="accent_orange">#FFFF8A65</color>
+    <color name="accent_orange_on">#FF4E1400</color>
+    <color name="accent_rose">#FFF06292</color>
+    <color name="accent_rose_on">#FF4A0025</color>
+    <color name="bg_scrim">#B3000000</color>
+    <color name="bg_fallback_surface">#FF121212</color>
 </resources>

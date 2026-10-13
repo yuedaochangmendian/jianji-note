@@ -11,10 +11,14 @@ import com.jianji.note.R
 import com.jianji.note.data.Note
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ItemNoteBriefBinding
+import com.jianji.note.databinding.ItemNoteBearBinding
 import com.jianji.note.databinding.ItemNoteCardBinding
 import com.jianji.note.databinding.ItemNoteDailyBinding
 import com.jianji.note.databinding.ItemNoteGridBinding
+import com.jianji.note.databinding.ItemNoteMdBinding
+import com.jianji.note.databinding.ItemNoteMiNoteBinding
 import com.jianji.note.databinding.ItemNoteNormalBinding
+import com.jianji.note.databinding.ItemNoteSmartisanBinding
 import com.jianji.note.databinding.ItemNoteSummaryBinding
 import com.jianji.note.util.TimeFmt
 
@@ -23,6 +27,7 @@ import com.jianji.note.util.TimeFmt
  * 每个样式一个 item 布局，公共的标题/摘要/时间/置顶/锁定绑定逻辑放在基类里。
  */
 class NoteListAdapter(
+    private val typeface: android.graphics.Typeface? = null,
     private val onClick: (Note) -> Unit,
     private val onLongClick: (Note, View) -> Unit,
 ) : ListAdapter<Note, NoteListAdapter.BaseHolder>(DIFF) {
@@ -50,6 +55,14 @@ class NoteListAdapter(
                 DailyHolder(ItemNoteDailyBinding.inflate(inflater, parent, false))
             Prefs.LAYOUT_BRIEF ->
                 BriefHolder(ItemNoteBriefBinding.inflate(inflater, parent, false))
+            Prefs.LAYOUT_MD ->
+                MdHolder(ItemNoteMdBinding.inflate(inflater, parent, false))
+            Prefs.LAYOUT_MI_NOTE ->
+                MiNoteHolder(ItemNoteMiNoteBinding.inflate(inflater, parent, false))
+            Prefs.LAYOUT_SMARTISAN ->
+                SmartisanHolder(ItemNoteSmartisanBinding.inflate(inflater, parent, false))
+            Prefs.LAYOUT_BEAR ->
+                BearHolder(ItemNoteBearBinding.inflate(inflater, parent, false))
             else ->
                 NormalHolder(ItemNoteNormalBinding.inflate(inflater, parent, false))
         }
@@ -74,6 +87,11 @@ class NoteListAdapter(
             title.text = note.displayTitle
             val preview = note.preview
             content.text = preview
+            typeface?.let {
+                title.typeface = it
+                content.typeface = it
+                time.typeface = it
+            }
             content.visibility = if (preview.isBlank()) View.GONE else View.VISIBLE
             time.text = TimeFmt.friendly(note.updatedAt)
             pin?.visibility = if (note.pinned) View.VISIBLE else View.GONE
@@ -156,6 +174,41 @@ class NoteListAdapter(
             binding.dot.visibility = if (note.pinned) View.VISIBLE else View.INVISIBLE
             bindClicks(note)
         }
+    }
+
+    private inner class MdHolder(
+        private val binding: ItemNoteMdBinding,
+    ) : BaseHolder(binding.root) {
+        override fun bind(note: Note) {
+            binding.accent.visibility = if (note.pinned) View.VISIBLE else View.INVISIBLE
+            bindTexts(
+                note, binding.tvTitle, binding.tvContent, binding.tvTime, binding.ivPin, binding.ivLock,
+            )
+        }
+    }
+
+    private inner class MiNoteHolder(
+        private val binding: ItemNoteMiNoteBinding,
+    ) : BaseHolder(binding.root) {
+        override fun bind(note: Note) = bindTexts(
+            note, binding.tvTitle, binding.tvContent, binding.tvTime, binding.ivPin, binding.ivLock,
+        )
+    }
+
+    private inner class SmartisanHolder(
+        private val binding: ItemNoteSmartisanBinding,
+    ) : BaseHolder(binding.root) {
+        override fun bind(note: Note) = bindTexts(
+            note, binding.tvTitle, binding.tvContent, binding.tvTime, binding.ivPin, binding.ivLock,
+        )
+    }
+
+    private inner class BearHolder(
+        private val binding: ItemNoteBearBinding,
+    ) : BaseHolder(binding.root) {
+        override fun bind(note: Note) = bindTexts(
+            note, binding.tvTitle, binding.tvContent, binding.tvTime, binding.ivPin, binding.ivLock,
+        )
     }
 
     companion object {

@@ -6,6 +6,7 @@
     android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -75,6 +76,93 @@
                 android:stepSize="0.1"
                 android:valueFrom="1.0"
                 android:valueTo="2.5" />
+
+            <LinearLayout
+                android:id="@+id/rowAccent"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_accent" />
+
+                <TextView
+                    android:id="@+id/tvAccentValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchTintAppBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/settings_tint_app_bar"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <TextView
+                style="@style/SettingValue"
+                android:layout_width="match_parent"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="@string/settings_tint_app_bar_desc" />
+
+            <TextView
+                style="@style/SettingSection"
+                android:text="@string/section_personalize" />
+
+            <LinearLayout
+                android:id="@+id/rowFont"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_custom_font" />
+
+                <TextView
+                    android:id="@+id/tvFontValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowBgMain"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/bg_main" />
+
+                <TextView
+                    android:id="@+id/tvBgMainValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowBgEditor"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/bg_editor" />
+
+                <TextView
+                    android:id="@+id/tvBgEditorValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowBgDrawer"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/bg_drawer" />
+
+                <TextView
+                    android:id="@+id/tvBgDrawerValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
 
             <TextView
                 style="@style/SettingSection"

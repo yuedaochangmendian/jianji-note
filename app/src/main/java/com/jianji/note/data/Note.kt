@@ -15,6 +15,8 @@ data class Note(
     @ColumnInfo(defaultValue = "0") val locked: Boolean = false,
     /** true 表示正文按 Markdown 源码保存，预览时渲染。 */
     @ColumnInfo(defaultValue = "0") val markdown: Boolean = false,
+    /** 内嵌图片的文件名列表（JSON 数组字符串），文件存在 filesDir/images 下。 */
+    @ColumnInfo(defaultValue = "") val images: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val deletedAt: Long? = null,

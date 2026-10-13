@@ -21,6 +21,19 @@ object Prefs {
     const val LAYOUT_SUMMARY = 3
     const val LAYOUT_DAILY = 4
     const val LAYOUT_BRIEF = 5
+    const val LAYOUT_MD = 6
+    const val LAYOUT_MI_NOTE = 7
+    const val LAYOUT_SMARTISAN = 8
+    const val LAYOUT_BEAR = 9
+
+    const val ACCENT_INDIGO = 0
+    const val ACCENT_TEAL = 1
+    const val ACCENT_BLUE = 2
+    const val ACCENT_PURPLE = 3
+    const val ACCENT_ORANGE = 4
+    const val ACCENT_ROSE = 5
+
+    val ACCENT_COUNT = 6
 
     private lateinit var sp: SharedPreferences
 
@@ -43,6 +56,34 @@ object Prefs {
     var layoutType: Int
         get() = sp.getInt("layout_type", LAYOUT_NORMAL)
         set(value) = sp.edit().putInt("layout_type", value).apply()
+
+    /** 强调色编号，见 ACCENT_*。 */
+    var accent: Int
+        get() = sp.getInt("accent", ACCENT_INDIGO)
+        set(value) = sp.edit().putInt("accent", value.coerceIn(0, ACCENT_COUNT - 1)).apply()
+
+    /** 开启后应用栏用强调色，状态栏区域也就跟着染色了。 */
+    var tintAppBar: Boolean
+        get() = sp.getBoolean("tint_app_bar", false)
+        set(value) = sp.edit().putBoolean("tint_app_bar", value).apply()
+
+    /** 自定义字体文件名（存在 filesDir/fonts），空表示用系统字体。 */
+    var customFont: String
+        get() = sp.getString("custom_font", "").orEmpty()
+        set(value) = sp.edit().putString("custom_font", value).apply()
+
+    /** 各页面自定义背景的文件名（存在 filesDir/backgrounds），空表示用主题底色。 */
+    var backgroundMain: String
+        get() = sp.getString("bg_main", "").orEmpty()
+        set(value) = sp.edit().putString("bg_main", value).apply()
+
+    var backgroundEditor: String
+        get() = sp.getString("bg_editor", "").orEmpty()
+        set(value) = sp.edit().putString("bg_editor", value).apply()
+
+    var backgroundDrawer: String
+        get() = sp.getString("bg_drawer", "").orEmpty()
+        set(value) = sp.edit().putString("bg_drawer", value).apply()
 
     /** 正文字号，sp。 */
     var fontSize: Int

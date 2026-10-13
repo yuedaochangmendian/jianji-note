@@ -30,6 +30,7 @@ class WebDavActivity : BaseActivity() {
         binding = ActivityWebdavBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.applySystemBarInsets(bottom = true, includeIme = true)
+        applyAppBarTint(binding.appBar)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

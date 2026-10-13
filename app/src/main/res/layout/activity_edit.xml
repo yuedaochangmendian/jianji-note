@@ -6,6 +6,7 @@
     android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -61,6 +62,24 @@
         android:paddingBottom="2dp"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="?android:attr/textColorTertiary" />
+
+    <HorizontalScrollView
+        android:id="@+id/imageStrip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/imageRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp" />
+    </HorizontalScrollView>
 
     <HorizontalScrollView
         android:id="@+id/toolScroll"

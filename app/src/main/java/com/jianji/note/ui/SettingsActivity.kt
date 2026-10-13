@@ -13,6 +13,7 @@ import com.jianji.note.R
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivitySettingsBinding
 import com.jianji.note.util.Backup
+import com.jianji.note.util.AppFiles
 import com.jianji.note.util.TimeFmt
 import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.launch
@@ -54,11 +55,28 @@ class SettingsActivity : BaseActivity() {
         binding.switchPasscode.isChecked = Prefs.passcodeEnabled
     }
 
+    private val fontPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { pickFont(it) } }
+
+    private val bgMainPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { pickBackground(it, SLOT_MAIN) } }
+
+    private val bgEditorPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { pickBackground(it, SLOT_EDITOR) } }
+
+    private val bgDrawerPicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { pickBackground(it, SLOT_DRAWER) } }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.applySystemBarInsets()
+        applyAppBarTint(binding.appBar)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -98,6 +116,17 @@ class SettingsActivity : BaseActivity() {
             startActivity(Intent(this, WebDavActivity::class.java))
         }
 
+        binding.rowAccent.setOnClickListener { pickAccent() }
+        binding.switchTintAppBar.isChecked = Prefs.tintAppBar
+        binding.switchTintAppBar.setOnCheckedChangeListener { _, checked ->
+            Prefs.tintAppBar = checked
+            recreate()
+        }
+        binding.rowFont.setOnClickListener { fontPicker.launch(arrayOf("font/*", "*/*")) }
+        binding.rowBgMain.setOnClickListener { backgroundMenu(SLOT_MAIN) }
+        binding.rowBgEditor.setOnClickListener { backgroundMenu(SLOT_EDITOR) }
+        binding.rowBgDrawer.setOnClickListener { backgroundMenu(SLOT_DRAWER) }
+
         binding.tvVersion.text = getString(R.string.about_version, appVersionName())
         updateSummary()
     }
@@ -120,6 +149,97 @@ class SettingsActivity : BaseActivity() {
             Prefs.webdavLastSync > 0 -> TimeFmt.fullDateTime(Prefs.webdavLastSync)
             else -> getString(R.string.webdav_value_on)
         }
+        binding.tvAccentValue.text = accentName(Prefs.accent)
+        binding.tvFontValue.text = Prefs.customFont.ifBlank { getString(R.string.value_unset) }
+        binding.tvBgMainValue.text = valueLabel(Prefs.backgroundMain)
+        binding.tvBgEditorValue.text = valueLabel(Prefs.backgroundEditor)
+        binding.tvBgDrawerValue.text = valueLabel(Prefs.backgroundDrawer)
+    }
+
+    private fun valueLabel(name: String): String =
+        if (name.isBlank()) getString(R.string.value_unset) else getString(R.string.value_set)
+
+    private fun accentName(accent: Int): String = getString(
+        when (accent) {
+            Prefs.ACCENT_TEAL -> R.string.accent_teal
+            Prefs.ACCENT_BLUE -> R.string.accent_blue
+            Prefs.ACCENT_PURPLE -> R.string.accent_purple
+            Prefs.ACCENT_ORANGE -> R.string.accent_orange
+            Prefs.ACCENT_ROSE -> R.string.accent_rose
+            else -> R.string.accent_indigo
+        },
+    )
+
+    private fun pickAccent() {
+        val labels = (0 until Prefs.ACCENT_COUNT).map { accentName(it) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.settings_accent)
+            .setSingleChoiceItems(labels, Prefs.accent) { dialog, which ->
+                Prefs.accent = which
+                dialog.dismiss()
+                toast(getString(R.string.accent_updated))
+                recreate()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun pickFont(uri: Uri) {
+        val name = AppFiles.import(this, uri, AppFiles.KIND_FONT)
+        if (name == null || !AppFiles.isFontFile(this, name)) {
+            name?.let { AppFiles.delete(this, AppFiles.KIND_FONT, it) }
+            toast(getString(R.string.font_failed))
+            return
+        }
+        Prefs.customFont = name
+        toast(getString(R.string.font_applied, name))
+        updateSummary()
+        recreate()
+    }
+
+    private fun backgroundMenu(slot: Int) {
+        MaterialAlertDialogBuilder(this)
+            .setItems(
+                arrayOf(getString(R.string.bg_pick), getString(R.string.bg_clear)),
+            ) { _, which ->
+                if (which == 0) {
+                    when (slot) {
+                        SLOT_EDITOR -> bgEditorPicker.launch(arrayOf("image/*"))
+                        SLOT_DRAWER -> bgDrawerPicker.launch(arrayOf("image/*"))
+                        else -> bgMainPicker.launch(arrayOf("image/*"))
+                    }
+                } else {
+                    clearBackground(slot)
+                }
+            }
+            .show()
+    }
+
+    private fun pickBackground(uri: Uri, slot: Int) {
+        val name = AppFiles.import(this, uri, AppFiles.KIND_BACKGROUND)
+        if (name == null) {
+            toast(getString(R.string.bg_failed))
+            return
+        }
+        when (slot) {
+            SLOT_EDITOR -> Prefs.backgroundEditor = name
+            SLOT_DRAWER -> Prefs.backgroundDrawer = name
+            else -> Prefs.backgroundMain = name
+        }
+        toast(getString(R.string.bg_applied))
+        updateSummary()
+        recreate()
+    }
+
+    private fun clearBackground(slot: Int) {
+        when (slot) {
+            SLOT_EDITOR -> Prefs.backgroundEditor = ""
+            SLOT_DRAWER -> Prefs.backgroundDrawer = ""
+            else -> Prefs.backgroundMain = ""
+        }
+        toast(getString(R.string.bg_cleared))
+        updateSummary()
+        recreate()
     }
 
     private fun pickTheme() {
@@ -220,5 +340,11 @@ class SettingsActivity : BaseActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private companion object {
+        const val SLOT_MAIN = 0
+        const val SLOT_EDITOR = 1
+        const val SLOT_DRAWER = 2
     }
 }

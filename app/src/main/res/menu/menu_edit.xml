@@ -48,6 +48,28 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_export"
+        android:title="@string/menu_export"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/export_txt"
+                android:title="@string/export_txt" />
+            <item
+                android:id="@+id/export_md"
+                android:title="@string/export_md" />
+            <item
+                android:id="@+id/export_pdf"
+                android:title="@string/export_pdf" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_share_image"
+        android:title="@string/share_as_image"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_delete"
         android:icon="@drawable/ic_delete"
         android:title="@string/action_delete"

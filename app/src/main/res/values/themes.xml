@@ -4,5 +4,45 @@
         <item name="colorPrimary">@color/brand_primary</item>
         <item name="colorPrimaryContainer">@color/brand_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/brand_on_primary_container</item>
+        <item name="jianjiAccent">@color/accent_indigo</item>
     </style>
+
+    <!-- 强调色叠加层，运行时按设置 applyStyle 到当前主题上 -->
+    <style name="ThemeOverlay.Jianji.Accent0" parent="">
+        <item name="colorPrimary">@color/accent_indigo</item>
+        <item name="colorOnPrimary">@color/accent_indigo_on</item>
+        <item name="jianjiAccent">@color/accent_indigo</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent1" parent="">
+        <item name="colorPrimary">@color/accent_teal</item>
+        <item name="colorOnPrimary">@color/accent_teal_on</item>
+        <item name="jianjiAccent">@color/accent_teal</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent2" parent="">
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorOnPrimary">@color/accent_blue_on</item>
+        <item name="jianjiAccent">@color/accent_blue</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent3" parent="">
+        <item name="colorPrimary">@color/accent_purple</item>
+        <item name="colorOnPrimary">@color/accent_purple_on</item>
+        <item name="jianjiAccent">@color/accent_purple</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent4" parent="">
+        <item name="colorPrimary">@color/accent_orange</item>
+        <item name="colorOnPrimary">@color/accent_orange_on</item>
+        <item name="jianjiAccent">@color/accent_orange</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent5" parent="">
+        <item name="colorPrimary">@color/accent_rose</item>
+        <item name="colorOnPrimary">@color/accent_rose_on</item>
+        <item name="jianjiAccent">@color/accent_rose</item>
+    </style>
+
+    <style name="ThemeOverlay.Jianji.Accent" parent="" />
 </resources>

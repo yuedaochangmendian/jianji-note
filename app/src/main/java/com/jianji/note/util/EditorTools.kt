@@ -15,6 +15,8 @@ object EditorTools {
         BOLD, BULLET, ORDERED, TODO, TODO_DONE, QUOTE,
         CODE, CODE_BLOCK, LINK, DIVIDER,
         INDENT, TIME, DATE,
+        OUTDENT, LINE_AFTER,
+        COMMA, PERIOD, SEMICOLON, QUOTE_LEFT, QUOTE_RIGHT, DASH,
     }
 
     data class Result(val text: String, val selection: Int)
@@ -34,6 +36,8 @@ object EditorTools {
             Tool.TODO_DONE -> prefixLines(source, from, to, "- [x] ")
             Tool.QUOTE -> prefixLines(source, from, to, "> ")
             Tool.INDENT -> prefixLines(source, from, to, INDENT_UNIT)
+            Tool.OUTDENT -> stripPrefixLines(source, from, to, INDENT_UNIT)
+            Tool.LINE_AFTER -> insert(source, lineEnd(source, from), "\n", 1)
             Tool.ORDERED -> orderLines(source, from, to)
             Tool.BOLD -> wrap(source, from, to, "**", "**")
             Tool.CODE -> wrap(source, from, to, "`", "`")
@@ -48,7 +52,24 @@ object EditorTools {
                 val text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(now))
                 insert(source, from, text, text.length)
             }
+            Tool.COMMA -> insert(source, from, "，", 1)
+            Tool.PERIOD -> insert(source, from, "。", 1)
+            Tool.SEMICOLON -> insert(source, from, "；", 1)
+            Tool.QUOTE_LEFT -> insert(source, from, "“", 1)
+            Tool.QUOTE_RIGHT -> insert(source, from, "”", 1)
+            Tool.DASH -> insert(source, from, "——", 2)
         }
+    }
+
+    /** 去掉每行开头的指定前缀（用于反缩进）。 */
+    private fun stripPrefixLines(source: String, start: Int, end: Int, prefix: String): Result {
+        val lineStart = lineStart(source, start)
+        val lineEnd = lineEnd(source, end)
+        val result = source.substring(lineStart, lineEnd).split("\n")
+            .map { if (it.startsWith(prefix)) it.removePrefix(prefix) else it }
+            .joinToString("\n")
+        val text = source.substring(0, lineStart) + result + source.substring(lineEnd)
+        return Result(text, lineStart + result.length)
     }
 
     /** 给选区覆盖的每一行加前缀；如果所有行都已有该前缀，则去掉（再次点击即取消）。 */

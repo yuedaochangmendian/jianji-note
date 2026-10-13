@@ -1,6 +1,8 @@
 package com.jianji.note.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +13,10 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -20,7 +26,12 @@ import com.jianji.note.data.Note
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityEditBinding
 import com.jianji.note.util.EditorTools
+import com.jianji.note.util.AppFiles
+import com.jianji.note.util.Exporter
+import com.jianji.note.util.ImageList
+import com.jianji.note.util.ImageLoader
 import com.jianji.note.util.applySystemBarInsets
+import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,9 +50,32 @@ class EditActivity : BaseActivity() {
 
     private data class Snapshot(val title: String, val content: String)
 
+    /** 工具栏条目：要么是一个文本操作，要么是「插入图片」。 */
+    private data class ToolEntry(
+        val label: String,
+        val tool: EditorTools.Tool? = null,
+        val insertImage: Boolean = false,
+    )
+
     private val undoStack = ArrayDeque<Snapshot>()
     private val redoStack = ArrayDeque<Snapshot>()
     private var lastCommitted: Snapshot? = null
+
+    private val imagePicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> uri?.let { addImage(it) } }
+
+    private val exportTxtLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri -> uri?.let { exportTo(it, EXPORT_TXT) } }
+
+    private val exportMdLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/markdown"),
+    ) { uri -> uri?.let { exportTo(it, EXPORT_MD) } }
+
+    private val exportPdfLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf"),
+    ) { uri -> uri?.let { exportTo(it, EXPORT_PDF) } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +84,8 @@ class EditActivity : BaseActivity() {
 
         // 输入法弹出时也要把内容顶上去，否则正文会被键盘挡住
         binding.root.applySystemBarInsets(bottom = true, includeIme = true)
+        applyAppBarTint(binding.appBar)
+        UiStyle.applyBackground(binding.root, R.color.bg_fallback_surface, Prefs.backgroundEditor)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -88,6 +124,10 @@ class EditActivity : BaseActivity() {
         binding.etContent.textSize = Prefs.fontSize.toFloat()
         binding.etContent.setLineSpacing(0f, Prefs.lineSpacing)
         binding.etTitle.textSize = (Prefs.fontSize + 4).toFloat()
+        UiStyle.typeface(this)?.let { face ->
+            binding.etContent.typeface = face
+            binding.etTitle.typeface = face
+        }
     }
 
     private fun bindNote() {
@@ -111,12 +151,151 @@ class EditActivity : BaseActivity() {
 
     private fun updateCount() {
         val count = binding.etContent.text?.length ?: 0
-        binding.tvCount.text = getString(R.string.editor_count, count)
+        val images = ImageList.decode(note?.images).size
+        binding.tvCount.text = if (images > 0) {
+            getString(R.string.editor_count_with_images, count, images)
+        } else {
+            getString(R.string.editor_count, count)
+        }
     }
 
     private fun refreshBottom() {
         updateCount()
         buildToolBar()
+        refreshImageStrip()
+    }
+
+    // ---------------- 图片附件 ----------------
+
+    private fun addImage(uri: Uri) {
+        lifecycleScope.launch {
+            val name = AppFiles.import(this@EditActivity, uri, AppFiles.KIND_IMAGE)
+            if (name == null) {
+                toast(getString(R.string.image_failed))
+                return@launch
+            }
+            val current = note ?: Note()
+            note = current.copy(images = ImageList.append(current.images, name))
+
+            // 正文里留一个占位符，预览时替换成真正的图片
+            val edit = binding.etContent
+            val at = edit.selectionStart.coerceAtLeast(0)
+            val text = edit.text?.toString().orEmpty()
+            val marker = "[img]"
+            val newText = text.substring(0, at) + marker + text.substring(at)
+            loading = true
+            edit.setText(newText)
+            edit.setSelection((at + marker.length).coerceAtMost(newText.length))
+            loading = false
+            dirty = true
+
+            persist(force = true)
+            refreshBottom()
+            toast(getString(R.string.image_added))
+        }
+    }
+
+    private fun refreshImageStrip() {
+        val names = ImageList.decode(note?.images)
+        binding.imageStrip.visibility = if (names.isEmpty()) View.GONE else View.VISIBLE
+        binding.imageRow.removeAllViews()
+        val size = dp(56)
+        names.forEach { name ->
+            val thumb = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(8) }
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                setOnClickListener { confirmRemoveImage(name) }
+            }
+            ImageLoader.loadThumbnail(thumb, AppFiles.file(this, AppFiles.KIND_IMAGE, name), size)
+            binding.imageRow.addView(thumb)
+        }
+    }
+
+    private fun confirmRemoveImage(name: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.image_remove_title)
+            .setMessage(R.string.image_remove_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
+                lifecycleScope.launch {
+                    note = note?.copy(images = ImageList.remove(note?.images, name))
+                    AppFiles.delete(this@EditActivity, AppFiles.KIND_IMAGE, name)
+                    persist(force = true)
+                    refreshBottom()
+                }
+            }
+            .show()
+    }
+
+    // ---------------- 导出与分享 ----------------
+
+    private fun exportTo(uri: Uri, kind: Int) {
+        lifecycleScope.launch {
+            saveJob?.cancel()
+            persist(force = true)
+            val current = note ?: return@launch
+            val ok = try {
+                when (kind) {
+                    EXPORT_PDF -> {
+                        val temp = File(cacheDir, "jianji-export.pdf")
+                        val written = PdfExporter.write(temp, current, Prefs.fontSize.toFloat())
+                        if (written) {
+                            contentResolver.openOutputStream(uri)?.use { output ->
+                                temp.inputStream().use { it.copyTo(output) }
+                            }
+                        }
+                        written
+                    }
+
+                    EXPORT_MD -> writeText(uri, Exporter.toMarkdown(current))
+                    else -> writeText(uri, Exporter.toPlainText(current))
+                }
+            } catch (e: Exception) {
+                false
+            }
+            if (ok) {
+                toast(getString(R.string.export_success_named, uri.lastPathSegment.orEmpty()))
+            } else {
+                toast(getString(R.string.export_pdf_failed))
+            }
+        }
+    }
+
+    private fun writeText(uri: Uri, text: String): Boolean = try {
+        contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+        true
+    } catch (e: Exception) {
+        false
+    }
+
+    private fun shareAsImage() {
+        lifecycleScope.launch {
+            saveJob?.cancel()
+            persist(force = true)
+            val current = note ?: return@launch
+            val bitmap = runCatching { ShareImageRenderer.render(this@EditActivity, current) }
+                .getOrNull()
+            if (bitmap == null) {
+                toast(getString(R.string.share_image_failed))
+                return@launch
+            }
+            val file = File(File(cacheDir, "shared").apply { mkdirs() }, "jianji-share.png")
+            runCatching {
+                file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            }.onFailure {
+                toast(getString(R.string.share_image_failed))
+                return@launch
+            }
+            val uri = FileProvider.getUriForFile(
+                this@EditActivity, "$packageName.fileprovider", file,
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.share_as_image)))
+        }
     }
 
     private fun currentSnapshot() = Snapshot(
@@ -186,15 +365,21 @@ class EditActivity : BaseActivity() {
         val ripple = resolveSelectableItemBackground()
         val tools = if (markdown) MARKDOWN_TOOLS else NORMAL_TOOLS
 
-        tools.forEach { (tool, label) ->
+        tools.forEach { entry ->
             val button = TextView(this).apply {
-                text = label
+                text = entry.label
                 textSize = 14f
                 gravity = Gravity.CENTER
                 setTextColor(color)
                 setPadding(dp(14), dp(10), dp(14), dp(10))
                 if (ripple != 0) setBackgroundResource(ripple)
-                setOnClickListener { applyTool(tool) }
+                setOnClickListener {
+                    if (entry.insertImage) {
+                        imagePicker.launch(arrayOf("image/*"))
+                    } else {
+                        entry.tool?.let { applyTool(it) }
+                    }
+                }
             }
             binding.toolBar.addView(button)
         }
@@ -304,6 +489,10 @@ class EditActivity : BaseActivity() {
             R.id.action_lock -> toggleLock()
             R.id.action_move -> moveToFolder()
             R.id.action_share -> shareNote()
+            R.id.action_share_image -> shareAsImage()
+            R.id.export_txt -> exportTxtLauncher.launch(Exporter.fileNameFor(note ?: Note(), "txt"))
+            R.id.export_md -> exportMdLauncher.launch(Exporter.fileNameFor(note ?: Note(), "md"))
+            R.id.export_pdf -> exportPdfLauncher.launch(Exporter.fileNameFor(note ?: Note(), "pdf"))
             R.id.action_delete -> confirmDelete()
             else -> return super.onOptionsItemSelected(item)
         }
@@ -427,32 +616,45 @@ class EditActivity : BaseActivity() {
     companion object {
         const val EXTRA_NOTE_ID = "note_id"
         private const val MAX_HISTORY = 60
+        private const val EXPORT_TXT = 0
+        private const val EXPORT_MD = 1
+        private const val EXPORT_PDF = 2
 
         private val NORMAL_TOOLS = listOf(
-            EditorTools.Tool.INDENT to "缩进",
-            EditorTools.Tool.BULLET to "• 列表",
-            EditorTools.Tool.ORDERED to "1. 列表",
-            EditorTools.Tool.TODO to "☐ 待办",
-            EditorTools.Tool.QUOTE to "引用",
-            EditorTools.Tool.DIVIDER to "分隔线",
-            EditorTools.Tool.TIME to "时间",
-            EditorTools.Tool.DATE to "日期",
+            ToolEntry("缩进", EditorTools.Tool.INDENT),
+            ToolEntry("反缩进", EditorTools.Tool.OUTDENT),
+            ToolEntry("• 列表", EditorTools.Tool.BULLET),
+            ToolEntry("1. 列表", EditorTools.Tool.ORDERED),
+            ToolEntry("☐ 待办", EditorTools.Tool.TODO),
+            ToolEntry("引用", EditorTools.Tool.QUOTE),
+            ToolEntry("段后空行", EditorTools.Tool.LINE_AFTER),
+            ToolEntry("分隔线", EditorTools.Tool.DIVIDER),
+            ToolEntry("时间", EditorTools.Tool.TIME),
+            ToolEntry("日期", EditorTools.Tool.DATE),
+            ToolEntry("，", EditorTools.Tool.COMMA),
+            ToolEntry("。", EditorTools.Tool.PERIOD),
+            ToolEntry("；", EditorTools.Tool.SEMICOLON),
+            ToolEntry("“", EditorTools.Tool.QUOTE_LEFT),
+            ToolEntry("”", EditorTools.Tool.QUOTE_RIGHT),
+            ToolEntry("——", EditorTools.Tool.DASH),
+            ToolEntry("插入图片", insertImage = true),
         )
 
         private val MARKDOWN_TOOLS = listOf(
-            EditorTools.Tool.H1 to "H1",
-            EditorTools.Tool.H2 to "H2",
-            EditorTools.Tool.H3 to "H3",
-            EditorTools.Tool.BOLD to "B",
-            EditorTools.Tool.BULLET to "•",
-            EditorTools.Tool.ORDERED to "1.",
-            EditorTools.Tool.TODO to "☐",
-            EditorTools.Tool.TODO_DONE to "☑",
-            EditorTools.Tool.QUOTE to "引用",
-            EditorTools.Tool.CODE to "代码",
-            EditorTools.Tool.CODE_BLOCK to "代码块",
-            EditorTools.Tool.LINK to "链接",
-            EditorTools.Tool.DIVIDER to "分隔线",
+            ToolEntry("H1", EditorTools.Tool.H1),
+            ToolEntry("H2", EditorTools.Tool.H2),
+            ToolEntry("H3", EditorTools.Tool.H3),
+            ToolEntry("B", EditorTools.Tool.BOLD),
+            ToolEntry("•", EditorTools.Tool.BULLET),
+            ToolEntry("1.", EditorTools.Tool.ORDERED),
+            ToolEntry("☐", EditorTools.Tool.TODO),
+            ToolEntry("☑", EditorTools.Tool.TODO_DONE),
+            ToolEntry("引用", EditorTools.Tool.QUOTE),
+            ToolEntry("代码", EditorTools.Tool.CODE),
+            ToolEntry("代码块", EditorTools.Tool.CODE_BLOCK),
+            ToolEntry("链接", EditorTools.Tool.LINK),
+            ToolEntry("分隔线", EditorTools.Tool.DIVIDER),
+            ToolEntry("插入图片", insertImage = true),
         )
     }
 }

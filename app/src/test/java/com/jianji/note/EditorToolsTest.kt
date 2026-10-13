@@ -67,4 +67,27 @@ class EditorToolsTest {
         assertEquals("```\n\n```", result.text)
         assertEquals(4, result.selection)
     }
+
+    @Test
+    fun `反缩进去掉一个缩进单位`() {
+        val source = "　　第一行\n　　第二行"
+        val result = EditorTools.apply(source, 0, source.length, Tool.OUTDENT, 0L)
+        assertEquals("第一行\n第二行", result.text)
+    }
+
+    @Test
+    fun `标点插入在光标处`() {
+        assertEquals("你好，", EditorTools.apply("你好", 2, 2, Tool.COMMA, 0L).text)
+        assertEquals("你好。", EditorTools.apply("你好", 2, 2, Tool.PERIOD, 0L).text)
+        assertEquals("你好；", EditorTools.apply("你好", 2, 2, Tool.SEMICOLON, 0L).text)
+        assertEquals("“你好", EditorTools.apply("你好", 0, 0, Tool.QUOTE_LEFT, 0L).text)
+        assertEquals("你好”", EditorTools.apply("你好", 2, 2, Tool.QUOTE_RIGHT, 0L).text)
+        assertEquals("你好——", EditorTools.apply("你好", 2, 2, Tool.DASH, 0L).text)
+    }
+
+    @Test
+    fun `段后空行插在行尾`() {
+        val result = EditorTools.apply("第一行\n第二行", 1, 1, Tool.LINE_AFTER, 0L)
+        assertEquals("第一行\n\n第二行", result.text)
+    }
 }

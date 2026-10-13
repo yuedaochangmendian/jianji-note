@@ -27,12 +27,14 @@ class TrashActivity : BaseActivity() {
         binding = ActivityTrashBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.applySystemBarInsets()
+        applyAppBarTint(binding.appBar)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_arrow_back)
 
         val adapter = NoteListAdapter(
+            typeface = UiStyle.typeface(this),
             onClick = { note ->
                 lifecycleScope.launch {
                     repo.noteDao.restore(note.id)

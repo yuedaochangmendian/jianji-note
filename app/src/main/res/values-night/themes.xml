@@ -4,5 +4,6 @@
         <item name="colorPrimary">#9FA8DA</item>
         <item name="colorPrimaryContainer">#283593</item>
         <item name="colorOnPrimaryContainer">#E8EAF6</item>
+        <item name="jianjiAccent">@color/accent_indigo</item>
     </style>
 </resources>

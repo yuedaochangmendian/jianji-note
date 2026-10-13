@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp">
+
+    <View
+        android:layout_width="3dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:background="?attr/jianjiAccent" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivPin"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="@string/action_pin"
+                android:src="@drawable/ic_pin"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/ivLock"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="6dp"
+                android:contentDescription="@string/action_lock"
+                android:src="@drawable/ic_lock"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?android:attr/textColorTertiary" />
+    </LinearLayout>
+
+</LinearLayout>
