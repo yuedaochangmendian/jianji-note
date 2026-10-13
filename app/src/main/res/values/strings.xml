@@ -90,6 +90,31 @@
     <string name="image_remove_title">删除这张图片？</string>
     <string name="image_remove_message">图片文件会从应用里删除，正文里的占位符需要你自己删掉。</string>
     <string name="editor_count_with_images">%1$d 字 · 图片 %2$d 张</string>
+
+    <!-- 快捷方式 -->
+    <string name="shortcut_new_note">新建笔记</string>
+    <string name="shortcut_new_note_long">新建一条笔记</string>
+    <string name="shortcut_search">搜索</string>
+    <string name="shortcut_search_long">搜索笔记</string>
+
+    <!-- 桌面小组件 -->
+    <string name="widget_name">简记 · 笔记列表</string>
+    <string name="widget_desc">在桌面上显示一个文件夹里的笔记</string>
+    <string name="widget_empty">这个文件夹还没有笔记</string>
+    <string name="widget_title">小组件设置</string>
+    <string name="widget_folder">显示哪个文件夹</string>
+    <string name="widget_top_color">顶部颜色</string>
+    <string name="widget_bottom_color">底部颜色</string>
+    <string name="widget_text_color">文字颜色</string>
+    <string name="widget_text_light">浅色文字</string>
+    <string name="widget_text_dark">深色文字</string>
+    <string name="widget_radius">圆角</string>
+    <string name="widget_rows">显示条数</string>
+    <string name="widget_confirm">完成</string>
+    <string name="widget_radius_none">直角</string>
+    <string name="widget_radius_small">小圆角</string>
+    <string name="widget_radius_medium">中圆角</string>
+    <string name="widget_radius_large">大圆角</string>
     <string name="action_new_note">新建笔记</string>
     <string name="action_search">搜索</string>
     <string name="action_pin">置顶</string>

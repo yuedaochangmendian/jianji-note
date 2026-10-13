@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_add"
+        android:shortcutId="new_note"
+        android:shortcutLongLabel="@string/shortcut_new_note_long"
+        android:shortcutShortLabel="@string/shortcut_new_note">
+        <intent
+            android:action="com.jianji.note.action.NEW_NOTE"
+            android:targetClass="com.jianji.note.ui.MainActivity"
+            android:targetPackage="com.jianji.note" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_search"
+        android:shortcutId="search"
+        android:shortcutLongLabel="@string/shortcut_search_long"
+        android:shortcutShortLabel="@string/shortcut_search">
+        <intent
+            android:action="com.jianji.note.action.SEARCH"
+            android:targetClass="com.jianji.note.ui.MainActivity"
+            android:targetPackage="com.jianji.note" />
+    </shortcut>
+
+</shortcuts>

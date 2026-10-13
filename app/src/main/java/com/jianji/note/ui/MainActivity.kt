@@ -29,6 +29,9 @@ import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityMainBinding
 import com.jianji.note.util.applySystemBarInsets
 import com.jianji.note.util.Exporter
+import com.jianji.note.widget.ACTION_NEW_NOTE
+import com.jianji.note.widget.ACTION_SEARCH
+import com.jianji.note.widget.NoteWidgetProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -53,6 +56,7 @@ class MainActivity : BaseActivity() {
     /** 整屏解锁（进入应用时）与单条笔记解锁两个流程分开，避免互相覆盖状态。 */
     private var lockPending = false
     private var pendingUnlockNoteId: Long? = null
+    private var pendingSearch = false
 
     private val lockLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -138,11 +142,29 @@ class MainActivity : BaseActivity() {
         )
 
         observeData()
+
+        // 桌面快捷方式 / 小组件带过来的动作
+        handleAction(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAction(intent)
+    }
+
+    private fun handleAction(intent: Intent?) {
+        when (intent?.action) {
+            ACTION_NEW_NOTE -> startEditor(null)
+            ACTION_SEARCH -> pendingSearch = true
+        }
     }
 
     override fun onStart() {
         super.onStart()
         requestUnlockIfNeeded()
+        // 笔记改动后回到列表时同步刷新桌面小组件
+        NoteWidgetProvider.refreshAll(this)
     }
 
     override fun onStop() {
@@ -382,6 +404,10 @@ class MainActivity : BaseActivity() {
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         checkMenuItem(menu, sortItemId())
         checkMenuItem(menu, layoutItemId())
+        if (pendingSearch) {
+            pendingSearch = false
+            menu.findItem(R.id.action_search)?.expandActionView()
+        }
         return super.onPrepareOptionsMenu(menu)
     }
 

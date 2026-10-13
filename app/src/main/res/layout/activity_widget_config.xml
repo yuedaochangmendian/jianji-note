@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:title="@string/widget_title"
+            app:titleTextColor="?attr/colorOnSurface" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:id="@+id/rowFolder"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_folder" />
+
+                <TextView
+                    android:id="@+id/tvFolder"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowTop"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_top_color" />
+
+                <TextView
+                    android:id="@+id/tvTop"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowBottom"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_bottom_color" />
+
+                <TextView
+                    android:id="@+id/tvBottom"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowText"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_text_color" />
+
+                <TextView
+                    android:id="@+id/tvText"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowRadius"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_radius" />
+
+                <TextView
+                    android:id="@+id/tvRadius"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowRows"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/widget_rows" />
+
+                <TextView
+                    android:id="@+id/tvRows"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/widget_confirm" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
