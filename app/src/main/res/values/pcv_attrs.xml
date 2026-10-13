@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PasscodeView">
+        <attr name="pcvType" format="enum">
+            <enum name="set_passcode" value="0" />
+            <enum name="check_passcode" value="1" />
+        </attr>
+        <attr name="pcvNormalColor" format="color" />
+        <attr name="pcvCorrectColor" format="color" />
+        <attr name="pcvWrongColor" format="color" />
+        <attr name="pcvNumberTextColor" format="color" />
+        <attr name="pcvLength" format="integer" />
+        <attr name="pcvFirstTip" format="string" />
+        <attr name="pcvSecondTip" format="string" />
+        <attr name="pcvWrongLengthTip" format="string" />
+        <attr name="pcvWrongInputTip" format="string" />
+        <attr name="pcvCorrectInputTip" format="string" />
+    </declare-styleable>
+</resources>

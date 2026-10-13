@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pinned_surface">#FF3D3826</color>
+    <color name="normal_surface">#FF23262B</color>
+    <color name="drawer_selected">#33FFFFFF</color>
+</resources>

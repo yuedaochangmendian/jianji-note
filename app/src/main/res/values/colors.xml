@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#3F51B5</color>
+    <color name="brand_primary">#3F51B5</color>
+    <color name="brand_primary_container">#E8EAF6</color>
+    <color name="brand_on_primary_container">#1A237E</color>
+    <color name="pinned_surface">#FFF7E0</color>
+    <color name="normal_surface">#FFFFFFFF</color>
+    <color name="drawer_selected">#1F3F51B5</color>
+    <color name="passcode_bg">#FF222222</color>
+</resources>

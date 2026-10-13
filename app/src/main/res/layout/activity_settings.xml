@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:title="@string/title_settings"
+            app:titleTextColor="?attr/colorOnSurface" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <TextView
+                style="@style/SettingSection"
+                android:text="@string/section_appearance" />
+
+            <LinearLayout
+                android:id="@+id/rowTheme"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_theme" />
+
+                <TextView
+                    android:id="@+id/tvThemeValue"
+                    style="@style/SettingValue" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvFontSizeLabel"
+                style="@style/SettingTitle"
+                android:paddingTop="8dp"
+                android:text="@string/settings_font_size_label" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderFontSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:stepSize="1"
+                android:valueFrom="12"
+                android:valueTo="30" />
+
+            <TextView
+                android:id="@+id/tvLineSpacingLabel"
+                style="@style/SettingTitle"
+                android:text="@string/settings_line_spacing_label" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderLineSpacing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="12dp"
+                android:stepSize="0.1"
+                android:valueFrom="1.0"
+                android:valueTo="2.5" />
+
+            <TextView
+                style="@style/SettingSection"
+                android:text="@string/section_security" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchPasscode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/settings_passcode"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <TextView
+                style="@style/SettingSection"
+                android:text="@string/section_data" />
+
+            <LinearLayout
+                android:id="@+id/rowExport"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_export" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowImport"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_import" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowClear"
+                style="@style/SettingRow">
+
+                <TextView
+                    style="@style/SettingTitle"
+                    android:text="@string/settings_clear"
+                    android:textColor="?attr/colorError" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SettingSection"
+                android:text="@string/section_about" />
+
+            <TextView
+                android:id="@+id/tvVersion"
+                style="@style/SettingTitle"
+                android:paddingBottom="8dp" />
+
+            <TextView
+                style="@style/SettingValue"
+                android:layout_width="match_parent"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/about_desc" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/pcv_bg_circle">
+
+        <ImageView
+            android:id="@+id/pcv_iv_lock"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_centerInParent="true"
+            app:srcCompat="@drawable/pcv_lock" />
+
+        <ImageView
+            android:id="@+id/pcv_iv_ok"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_centerInParent="true"
+            android:alpha="0"
+            android:scaleX="0"
+            android:scaleY="0"
+            android:tint="#66e75d"
+            app:srcCompat="@drawable/pcv_ic_check_bold_24dp" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/pcv_tv_input_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:letterSpacing="0.02"
+        android:textColor="#fff"
+        android:textSize="16sp" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_marginTop="32dp">
+
+        <View
+            android:id="@+id/pcv_cursor"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:visibility="invisible" />
+
+        <LinearLayout
+            android:id="@+id/pcv_layout_psd"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="312dp"
+        android:background="@drawable/pcv_lock_bg_white"
+        android:padding="48dp">
+
+        <TextView
+            android:id="@+id/pcv_number1"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentLeft="true"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/pcv_number2"
+            style="@style/PcvNumberInPasscode"
+            android:layout_centerHorizontal="true"
+            android:text="2" />
+
+        <TextView
+            android:id="@+id/pcv_number3"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentRight="true"
+            android:text="3" />
+
+        <TextView
+            android:id="@+id/pcv_number4"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/pcv_number1"
+            android:text="4" />
+
+        <TextView
+            android:id="@+id/pcv_number5"
+            style="@style/PcvNumberInPasscode"
+            android:layout_below="@id/pcv_number1"
+            android:layout_centerHorizontal="true"
+            android:text="5" />
+
+        <TextView
+            android:id="@+id/pcv_number6"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/pcv_number1"
+            android:text="6" />
+
+        <TextView
+            android:id="@+id/pcv_number7"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/pcv_number4"
+            android:text="7" />
+
+        <TextView
+            android:id="@+id/pcv_number8"
+            style="@style/PcvNumberInPasscode"
+            android:layout_below="@id/pcv_number4"
+            android:layout_centerHorizontal="true"
+            android:text="8" />
+
+        <TextView
+            android:id="@+id/pcv_number9"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/pcv_number4"
+            android:text="9" />
+
+        <ImageView
+            android:id="@+id/pcv_numberB"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/pcv_number7"
+            android:scaleType="centerInside"
+            android:tint="#FF8A8A8A"
+            app:srcCompat="@drawable/pcv_backspace" />
+
+        <TextView
+            android:id="@+id/pcv_number0"
+            style="@style/PcvNumberInPasscode"
+            android:layout_below="@id/pcv_number7"
+            android:layout_centerHorizontal="true"
+            android:text="0" />
+
+        <ImageView
+            android:id="@+id/pcv_numberOK"
+            style="@style/PcvNumberInPasscode"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/pcv_number7"
+            android:scaleType="centerInside"
+            android:tint="#FF8A8A8A"
+            app:srcCompat="@drawable/pcv_ic_check_bold_24dp" />
+    </RelativeLayout>
+
+</LinearLayout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">简记</string>
+
+    <!-- 列表 / 通用 -->
+    <string name="empty_hint">还没有笔记，点右下角新建</string>
+    <string name="empty_search">没有找到匹配的笔记</string>
+    <string name="action_new_note">新建笔记</string>
+    <string name="action_search">搜索</string>
+    <string name="action_pin">置顶</string>
+    <string name="action_unpin">取消置顶</string>
+    <string name="action_move">移动到文件夹</string>
+    <string name="action_delete">删除</string>
+    <string name="action_undo">撤销</string>
+    <string name="action_confirm">确定</string>
+    <string name="action_share">分享</string>
+
+    <!-- 文件夹 -->
+    <string name="folder_all">全部笔记</string>
+    <string name="folder_uncategorized">未分类</string>
+    <string name="folder_new">新建文件夹</string>
+    <string name="folder_rename">重命名</string>
+    <string name="folder_name_hint">文件夹名称</string>
+    <string name="folder_delete_title">删除文件夹</string>
+    <string name="folder_delete_message">确定删除「%1$s」？其中的笔记会移动到「未分类」。</string>
+
+    <string name="toast_moved_to_trash">已移入回收站</string>
+    <string name="toast_restored">已恢复</string>
+
+    <!-- 编辑器 -->
+    <string name="editor_title_hint">标题</string>
+    <string name="editor_content_hint">记点什么…</string>
+    <string name="editor_count">%1$d 字</string>
+    <string name="editor_delete_message">确定删除这条笔记？可以在回收站里找回。</string>
+
+    <!-- 回收站 -->
+    <string name="title_trash">回收站</string>
+    <string name="trash_empty_hint">回收站是空的</string>
+    <string name="trash_delete_title">彻底删除</string>
+    <string name="trash_delete_message">确定彻底删除「%1$s」？此操作无法撤销。</string>
+    <string name="trash_empty_title">清空回收站</string>
+    <string name="trash_empty_message">清空后无法恢复。</string>
+
+    <!-- 设置 -->
+    <string name="title_settings">设置</string>
+    <string name="section_appearance">外观</string>
+    <string name="section_security">安全</string>
+    <string name="section_data">数据</string>
+    <string name="section_about">关于</string>
+    <string name="settings_theme">主题</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="settings_font_size">正文字号（%1$d sp）</string>
+    <string name="settings_font_size_label">正文字号</string>
+    <string name="settings_line_spacing">行距（%1$s 倍）</string>
+    <string name="settings_line_spacing_label">行距</string>
+    <string name="settings_passcode">应用密码</string>
+    <string name="settings_export">导出备份</string>
+    <string name="settings_import">导入备份</string>
+    <string name="settings_clear">清空所有数据</string>
+    <string name="clear_title">清空所有数据</string>
+    <string name="clear_message">将删除全部笔记与文件夹，且无法恢复。建议先导出备份。</string>
+    <string name="export_success">已导出：%1$s</string>
+    <string name="export_failed">导出失败</string>
+    <string name="import_success">导入完成，共 %1$d 条笔记</string>
+    <string name="import_failed">导入失败，文件格式不正确</string>
+    <string name="clear_done">已清空</string>
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_desc">本地便签，免费、无广告、无登录、无会员。数据只保存在你的设备上。</string>
+
+    <!-- 密码锁 -->
+    <string name="passcode_tip_first">输入 4 位数字密码</string>
+    <string name="passcode_tip_second">再次输入以确认</string>
+    <string name="passcode_check_tip">输入密码以解锁</string>
+    <string name="passcode_wrong_length">请输入 4 位密码</string>
+    <string name="passcode_not_match">两次输入不一致，请重新设置</string>
+    <string name="passcode_wrong">密码错误，请重试</string>
+    <string name="passcode_correct">密码正确</string>
+    <string name="passcode_enabled_toast">已开启应用密码</string>
+    <string name="passcode_disabled_toast">已关闭应用密码</string>
+</resources>

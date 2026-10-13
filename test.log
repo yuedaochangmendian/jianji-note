@@ -1,0 +1,48 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:generateDebugResValues
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:checkDebugAarMetadata
+> Task :app:parseDebugLocalResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:compileDebugNavigationResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:processDebugManifestForPackage
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:javaPreCompileDebug
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+> Task :app:compileDebugKotlin
+
+> Task :app:compileDebugJavaWithJavac
+注: C:\Users\ljlgg\Documents\Codex\2026-10-13\ni-x\outputs\jianji-note\app\src\main\java\com\jianji\note\widget\passcode\PasscodeView.java使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+[Incubating] Problems report is available at: file:///C:/Users/ljlgg/Documents/Codex/2026-10-13/ni-x/outputs/jianji-note/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 41s
+29 actionable tasks: 29 executed
