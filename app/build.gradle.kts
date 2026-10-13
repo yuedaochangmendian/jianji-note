@@ -16,8 +16,8 @@ android {
         applicationId = "com.jianji.note"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.4.0"
+        versionCode = 6
+        versionName = "1.4.1"
     }
 
     // 必须先声明 signingConfigs，buildTypes 里才能按名字取到
@@ -96,6 +96,7 @@ dependencies {
     implementation(libs.okhttp)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.core)
     // 单元测试跑在 JVM 上，android.jar 里的 org.json 是桩实现，需要一份真实实现
     testImplementation(libs.org.json)
 }

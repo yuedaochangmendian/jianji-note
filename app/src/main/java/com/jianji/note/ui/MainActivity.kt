@@ -33,11 +33,13 @@ import com.jianji.note.widget.ACTION_NEW_NOTE
 import com.jianji.note.widget.ACTION_SEARCH
 import com.jianji.note.widget.NoteWidgetProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainActivity : BaseActivity() {
@@ -493,11 +495,13 @@ class MainActivity : BaseActivity() {
             val text = notes.joinToString("\n\n---\n\n") {
                 if (markdown) Exporter.toMarkdown(it) else Exporter.toPlainText(it)
             }
-            val ok = try {
-                contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
-                true
-            } catch (e: Exception) {
-                false
+            val ok = withContext(Dispatchers.IO) {
+                try {
+                    contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                    true
+                } catch (e: Exception) {
+                    false
+                }
             }
             toast(
                 if (ok) {

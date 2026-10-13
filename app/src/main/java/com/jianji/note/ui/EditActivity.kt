@@ -33,8 +33,10 @@ import com.jianji.note.util.ImageLoader
 import com.jianji.note.util.applySystemBarInsets
 import java.io.File
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EditActivity : BaseActivity() {
 
@@ -169,7 +171,10 @@ class EditActivity : BaseActivity() {
 
     private fun addImage(uri: Uri) {
         lifecycleScope.launch {
-            val name = AppFiles.import(this@EditActivity, uri, AppFiles.KIND_IMAGE)
+            // 复制文件是阻塞 IO，别放主线程
+            val name = withContext(Dispatchers.IO) {
+                AppFiles.import(this@EditActivity, uri, AppFiles.KIND_IMAGE)
+            }
             if (name == null) {
                 toast(getString(R.string.image_failed))
                 return@launch
@@ -234,24 +239,26 @@ class EditActivity : BaseActivity() {
             saveJob?.cancel()
             persist(force = true)
             val current = note ?: return@launch
-            val ok = try {
-                when (kind) {
-                    EXPORT_PDF -> {
-                        val temp = File(cacheDir, "jianji-export.pdf")
-                        val written = PdfExporter.write(temp, current, Prefs.fontSize.toFloat())
-                        if (written) {
-                            contentResolver.openOutputStream(uri)?.use { output ->
-                                temp.inputStream().use { it.copyTo(output) }
+            val ok = withContext(Dispatchers.IO) {
+                try {
+                    when (kind) {
+                        EXPORT_PDF -> {
+                            val temp = File(cacheDir, "jianji-export.pdf")
+                            val written = PdfExporter.write(temp, current, Prefs.fontSize.toFloat())
+                            if (written) {
+                                contentResolver.openOutputStream(uri)?.use { output ->
+                                    temp.inputStream().use { it.copyTo(output) }
+                                }
                             }
+                            written
                         }
-                        written
-                    }
 
-                    EXPORT_MD -> writeText(uri, Exporter.toMarkdown(current))
-                    else -> writeText(uri, Exporter.toPlainText(current))
+                        EXPORT_MD -> writeText(uri, Exporter.toMarkdown(current))
+                        else -> writeText(uri, Exporter.toPlainText(current))
+                    }
+                } catch (e: Exception) {
+                    false
                 }
-            } catch (e: Exception) {
-                false
             }
             if (ok) {
                 toast(getString(R.string.export_success_named, uri.lastPathSegment.orEmpty()))
@@ -273,21 +280,20 @@ class EditActivity : BaseActivity() {
             saveJob?.cancel()
             persist(force = true)
             val current = note ?: return@launch
-            val bitmap = runCatching { ShareImageRenderer.render(this@EditActivity, current) }
-                .getOrNull()
-            if (bitmap == null) {
-                toast(getString(R.string.share_image_failed))
-                return@launch
+            val outputFile = withContext(Dispatchers.IO) {
+                runCatching {
+                    val bitmap = ShareImageRenderer.render(this@EditActivity, current)
+                    val file = File(File(cacheDir, "shared").apply { mkdirs() }, "jianji-share.png")
+                    file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                    file
+                }.getOrNull()
             }
-            val file = File(File(cacheDir, "shared").apply { mkdirs() }, "jianji-share.png")
-            runCatching {
-                file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            }.onFailure {
+            if (outputFile == null) {
                 toast(getString(R.string.share_image_failed))
                 return@launch
             }
             val uri = FileProvider.getUriForFile(
-                this@EditActivity, "$packageName.fileprovider", file,
+                this@EditActivity, "$packageName.fileprovider", outputFile,
             )
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"

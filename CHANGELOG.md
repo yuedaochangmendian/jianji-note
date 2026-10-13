@@ -1,3 +1,34 @@
+## v1.4.1
+
+### 修复：WebDAV 完全不可用
+
+**症状**：在设置 → 云同步里点「测试连接」「立即上传备份」「从云端恢复」，全部失败。因为异常被兜底成通用错误，提示大概是「未知错误」。
+
+**原因**：`WebDavActivity` 用 `lifecycleScope.launch` 发起操作，跑在**主线程**；而 `WebDavClient` 里直接用 OkHttp 的 `newCall(...).execute()`——这是阻塞式 socket 调用，没切到 IO 线程。Android 在网络操作落在主线程时会抛 `NetworkOnMainThreadException`，而这个异常是 `RuntimeException`，客户端只 catch 了 `IOException`，于是漏了出去，被界面层的 `catch (Exception)` 兜住，显示成通用错误。
+
+顺带解释一个可能让人困惑的现象：**自动备份那条路是好的**，因为它走的是 `App.appScope`（`Dispatchers.IO`）。所以表现是「手动操作全挂、自动备份偶尔能成」。
+
+**修复**：`WebDavClient` 的所有请求方法改成 `suspend`，统一在 `withContext(Dispatchers.IO)` 里执行；另外补上对 `IllegalArgumentException`（地址不合法）和 `Exception` 的兜底。
+
+### 一并修掉的问题
+
+- **地址没写协议**：之前填 `dav.jianguoyun.com/dav` 会被 OkHttp 当成 `http://`，在 https 服务上直接失败。现在缺协议时自动补 `https://`。
+- **同样性质的阻塞 IO 搬离主线程**：插入图片时的文件复制、导出 TXT/Markdown/PDF 的写文件、生成分享图片，原来都在主线程上做。数据量大时会卡界面甚至 ANR。
+
+### 这次的验证方式不一样
+
+WebDAV 这块之前只有纯解析测试，网络层完全没被测到——所以这个 bug 一路漏到了你手上。这次补了 **8 个集成测试**，用一个自己写的极简 HTTP 服务端（`FakeHttpServer`，零依赖）把客户端完整跑一遍，覆盖：
+
+- PROPFIND 的方法、`Depth` 头、Basic 认证头
+- PUT 的路径与请求体
+- GET 的响应内容
+- 207 Multi-Status 的解析（含目录项过滤）
+- 401 的错误提示文案
+- 409 时自动 MKCOL 建目录并重试（断言请求序列是 PUT → MKCOL → PUT）
+- 中文目录地址的百分号编码
+
+单元测试总数 35 → 43。
+
 ## v1.4.0
 
 按「还剩什么」清单把桌面小组件和快捷方式补上了。

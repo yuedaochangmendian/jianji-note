@@ -5,6 +5,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -31,13 +33,13 @@ class WebDavClient(
 
     fun fileUrl(fileName: String): String = baseUrl + fileName
 
-    fun testConnection(): WebDavResult<Unit> =
+    suspend fun testConnection(): WebDavResult<Unit> =
         execute(propfindRequest("0")) { Unit }
 
-    fun listFiles(): WebDavResult<List<WebDavParser.RemoteEntry>> =
+    suspend fun listFiles(): WebDavResult<List<WebDavParser.RemoteEntry>> =
         execute(propfindRequest("1")) { body -> WebDavParser.parseMultiStatus(body) }
 
-    fun upload(fileName: String, content: String): WebDavResult<Unit> {
+    suspend fun upload(fileName: String, content: String): WebDavResult<Unit> {
         val request = Request.Builder()
             .url(fileUrl(fileName))
             .put(content.toRequestBody(JSON_MEDIA))
@@ -55,7 +57,7 @@ class WebDavClient(
         return result
     }
 
-    fun download(fileName: String): WebDavResult<String> {
+    suspend fun download(fileName: String): WebDavResult<String> {
         val request = Request.Builder()
             .url(fileUrl(fileName))
             .get()
@@ -65,7 +67,7 @@ class WebDavClient(
     }
 
     /** 目录不存在时创建它（MKCOL）。父目录也不存在时会返回 409。 */
-    fun makeDirectory(): WebDavResult<Unit> {
+    suspend fun makeDirectory(): WebDavResult<Unit> {
         val request = Request.Builder()
             .url(baseUrl)
             .method("MKCOL", null)
@@ -75,7 +77,7 @@ class WebDavClient(
     }
 
     /** 先探测目录是否存在，不存在则创建。 */
-    fun ensureDirectory(): WebDavResult<Unit> =
+    suspend fun ensureDirectory(): WebDavResult<Unit> =
         when (val probe = execute(propfindRequest("0")) { Unit }) {
             is WebDavResult.Success -> probe
             is WebDavResult.Error ->
@@ -89,18 +91,30 @@ class WebDavClient(
         .header("Authorization", authorization)
         .build()
 
-    private fun <T> execute(request: Request, parse: (String) -> T): WebDavResult<T> = try {
-        client.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (response.isSuccessful || response.code == 207) {
-                WebDavResult.Success(parse(body))
-            } else {
-                WebDavResult.Error(describe(response.code), response.code)
+    /**
+     * OkHttp 的 execute() 是阻塞调用，必须切到 IO 线程。
+     * 之前直接在主线程调用，Android 会抛 NetworkOnMainThreadException。
+     */
+    private suspend fun <T> execute(request: Request, parse: (String) -> T): WebDavResult<T> =
+        withContext(Dispatchers.IO) {
+            try {
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string().orEmpty()
+                    if (response.isSuccessful || response.code == 207) {
+                        WebDavResult.Success(parse(body))
+                    } else {
+                        WebDavResult.Error(describe(response.code), response.code)
+                    }
+                }
+            } catch (e: IOException) {
+                WebDavResult.Error("网络错误：${e.message ?: e.javaClass.simpleName}")
+            } catch (e: IllegalArgumentException) {
+                // 地址不合法时 OkHttp 抛的是运行时异常，之前漏了这一类
+                WebDavResult.Error("地址不合法：${e.message.orEmpty()}")
+            } catch (e: Exception) {
+                WebDavResult.Error("请求失败：${e.message ?: e.javaClass.simpleName}")
             }
         }
-    } catch (e: IOException) {
-        WebDavResult.Error("网络错误：${e.message ?: e.javaClass.simpleName}")
-    }
 
     private fun describe(code: Int): String = when (code) {
         401 -> "认证失败，请检查账号与密码（坚果云需要用「第三方应用密码」）"
@@ -129,8 +143,12 @@ class WebDavClient(
 
         /** 目录地址补上结尾的斜杠，多个斜杠也只在末尾保留一个。 */
         fun normalize(baseUrl: String): String {
-            val trimmed = baseUrl.trim()
+            var trimmed = baseUrl.trim()
             if (trimmed.isEmpty()) return ""
+            // 用户经常只填域名，没写协议；不补的话 OkHttp 会当成 http://，在 https 服务上会失败
+            if (!trimmed.startsWith("http://", true) && !trimmed.startsWith("https://", true)) {
+                trimmed = "https://$trimmed"
+            }
             return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
         }
     }
