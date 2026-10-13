@@ -1,5 +1,6 @@
 package com.jianji.note.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,6 +11,10 @@ data class Note(
     val content: String = "",
     val folderId: Long? = null,
     val pinned: Boolean = false,
+    /** 单条笔记锁定，打开/删除前需要输入应用密码。 */
+    @ColumnInfo(defaultValue = "0") val locked: Boolean = false,
+    /** true 表示正文按 Markdown 源码保存，预览时渲染。 */
+    @ColumnInfo(defaultValue = "0") val markdown: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val deletedAt: Long? = null,

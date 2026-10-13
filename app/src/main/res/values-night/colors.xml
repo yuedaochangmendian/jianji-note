@@ -3,4 +3,9 @@
     <color name="pinned_surface">#FF3D3826</color>
     <color name="normal_surface">#FF23262B</color>
     <color name="drawer_selected">#33FFFFFF</color>
+    <color name="md_code_bg">#FF2A2A2A</color>
+    <color name="md_code_fg">#FFCE93D8</color>
+    <color name="md_quote">#FF9E9E9E</color>
+    <color name="md_link">#FF90CAF9</color>
+    <color name="tool_text">#FF9FA8DA</color>
 </resources>

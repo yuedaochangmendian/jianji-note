@@ -7,14 +7,15 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -22,6 +23,7 @@ import com.jianji.note.App
 import com.jianji.note.R
 import com.jianji.note.data.Folder
 import com.jianji.note.data.Note
+import com.jianji.note.data.NoteSort
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityMainBinding
 import com.jianji.note.util.applySystemBarInsets
@@ -29,6 +31,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -40,17 +43,30 @@ class MainActivity : BaseActivity() {
 
     private val selection = MutableStateFlow<Selection>(Selection.All)
     private val searchQuery = MutableStateFlow("")
+    private val sortOrder = MutableStateFlow(Prefs.sortBy)
 
     private lateinit var noteAdapter: NoteListAdapter
     private lateinit var drawerAdapter: DrawerAdapter
 
+    /** 整屏解锁（进入应用时）与单条笔记解锁两个流程分开，避免互相覆盖状态。 */
     private var lockPending = false
+    private var pendingUnlockNoteId: Long? = null
 
     private val lockLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         lockPending = false
         if (result.resultCode != RESULT_OK) finish()
+    }
+
+    private val noteUnlockLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        val noteId = pendingUnlockNoteId
+        pendingUnlockNoteId = null
+        if (result.resultCode == RESULT_OK && noteId != null) {
+            startEditor(noteId)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,18 +76,18 @@ class MainActivity : BaseActivity() {
 
         // 让出状态栏 / 导航栏高度，否则内容会和系统栏重叠
         binding.coordinator.applySystemBarInsets()
-        binding.drawerPanel.applySystemBarInsets(horizontal = false)
+        binding.drawerPanel.applySystemBarInsets()
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu)
 
         noteAdapter = NoteListAdapter(
-            onClick = { note -> openEditor(note.id) },
+            onClick = { note -> requestOpen(note.id) },
             onLongClick = { note, view -> showNoteMenu(note, view) },
         )
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = noteAdapter
+        applyListLayout()
 
         drawerAdapter = DrawerAdapter(
             onItemClick = { item ->
@@ -91,7 +107,7 @@ class MainActivity : BaseActivity() {
         binding.drawerList.layoutManager = LinearLayoutManager(this)
         binding.drawerList.adapter = drawerAdapter
 
-        binding.fabAdd.setOnClickListener { openEditor(null) }
+        binding.fabAdd.setOnClickListener { startEditor(null) }
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -130,6 +146,15 @@ class MainActivity : BaseActivity() {
         )
     }
 
+    private fun applyListLayout() {
+        noteAdapter.layoutType = Prefs.layoutType
+        binding.recyclerView.layoutManager = if (Prefs.layoutType == Prefs.LAYOUT_GRID) {
+            GridLayoutManager(this, 2)
+        } else {
+            LinearLayoutManager(this)
+        }
+    }
+
     private fun observeData() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -147,13 +172,13 @@ class MainActivity : BaseActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                selection.collect { sel ->
-                    drawerAdapter.selected = sel
-                    supportActionBar?.title = when (sel) {
+                selection.collect { current ->
+                    drawerAdapter.selected = current
+                    supportActionBar?.title = when (current) {
                         Selection.All -> getString(R.string.folder_all)
                         Selection.Uncategorized -> getString(R.string.folder_uncategorized)
                         is Selection.InFolder -> repo.folderDao.loadAll()
-                            .firstOrNull { it.id == sel.id }?.name
+                            .firstOrNull { it.id == current.id }?.name
                             ?: getString(R.string.app_name)
                     }
                 }
@@ -162,34 +187,45 @@ class MainActivity : BaseActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                combine(selection, searchQuery) { sel, query -> sel to query }
-                    .flatMapLatest { (sel, query) ->
-                        if (query.isBlank()) {
-                            when (sel) {
-                                Selection.All -> repo.noteDao.observeActive()
-                                Selection.Uncategorized ->
-                                    repo.noteDao.observeActiveInFolder(null)
-                                is Selection.InFolder ->
-                                    repo.noteDao.observeActiveInFolder(sel.id)
-                            }
-                        } else {
-                            repo.noteDao.search(query)
-                        }
-                    }
-                    .collect { notes ->
-                        noteAdapter.submitList(notes)
-                        val empty = notes.isEmpty()
-                        binding.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
-                        binding.emptyView.text = getString(
-                            if (searchQuery.value.isBlank()) R.string.empty_hint
-                            else R.string.empty_search,
-                        )
-                    }
+                combine(selection, searchQuery, sortOrder) { sel, query, sort ->
+                    Triple(sel, query, sort)
+                }.flatMapLatest { (sel, query, sort) ->
+                    when {
+                        query.isNotBlank() -> repo.noteDao.search(query)
+                        sel is Selection.InFolder -> repo.noteDao.observeActiveInFolder(sel.id)
+                        sel is Selection.Uncategorized -> repo.noteDao.observeActiveInFolder(null)
+                        else -> repo.noteDao.observeActive()
+                    }.map { NoteSort.sort(it, sort) }
+                }.collect { notes ->
+                    noteAdapter.submitList(notes)
+                    val empty = notes.isEmpty()
+                    binding.emptyView.visibility = if (empty) View.VISIBLE else View.GONE
+                    binding.emptyView.text = getString(
+                        if (searchQuery.value.isBlank()) R.string.empty_hint
+                        else R.string.empty_search,
+                    )
+                }
             }
         }
     }
 
-    private fun openEditor(noteId: Long?) {
+    /** 锁定的笔记要先过密码才打开。 */
+    private fun requestOpen(noteId: Long) {
+        lifecycleScope.launch {
+            val note = repo.noteDao.findById(noteId)
+            if (note?.locked == true && Prefs.passcodeEnabled) {
+                pendingUnlockNoteId = noteId
+                noteUnlockLauncher.launch(
+                    Intent(this@MainActivity, PasscodeActivity::class.java)
+                        .putExtra(PasscodeActivity.EXTRA_MODE, PasscodeActivity.MODE_CHECK),
+                )
+            } else {
+                startEditor(noteId)
+            }
+        }
+    }
+
+    private fun startEditor(noteId: Long?) {
         startActivity(
             Intent(this, EditActivity::class.java)
                 .putExtra(EditActivity.EXTRA_NOTE_ID, noteId ?: 0L),
@@ -215,17 +251,21 @@ class MainActivity : BaseActivity() {
                     R.id.action_move -> pickFolder { folderId ->
                         lifecycleScope.launch { repo.noteDao.setFolder(note.id, folderId) }
                     }
-                    R.id.action_delete -> lifecycleScope.launch {
-                        repo.noteDao.moveToTrash(note.id, System.currentTimeMillis())
-                        Snackbar.make(
-                            binding.coordinator,
-                            R.string.toast_moved_to_trash,
-                            Snackbar.LENGTH_LONG,
-                        )
-                            .setAction(R.string.action_undo) {
-                                lifecycleScope.launch { repo.noteDao.restore(note.id) }
+                    R.id.action_delete -> {
+                        if (note.locked) {
+                            toast(getString(R.string.toast_note_locked_cant_delete))
+                        } else {
+                            lifecycleScope.launch {
+                                repo.noteDao.moveToTrash(note.id, System.currentTimeMillis())
+                                Snackbar.make(
+                                    binding.coordinator,
+                                    R.string.toast_moved_to_trash,
+                                    Snackbar.LENGTH_LONG,
+                                ).setAction(R.string.action_undo) {
+                                    lifecycleScope.launch { repo.noteDao.restore(note.id) }
+                                }.show()
                             }
-                            .show()
+                        }
                     }
                     else -> return@setOnMenuItemClickListener false
                 }
@@ -325,14 +365,74 @@ class MainActivity : BaseActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        checkMenuItem(menu, sortItemId())
+        checkMenuItem(menu, layoutItemId())
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    private fun sortItemId(): Int = when (Prefs.sortBy) {
+        NoteSort.CREATED_DESC -> R.id.sort_created_desc
+        NoteSort.CREATED_ASC -> R.id.sort_created_asc
+        else -> R.id.sort_updated
+    }
+
+    private fun layoutItemId(): Int = when (Prefs.layoutType) {
+        Prefs.LAYOUT_CARD -> R.id.layout_card
+        Prefs.LAYOUT_GRID -> R.id.layout_grid
+        Prefs.LAYOUT_SUMMARY -> R.id.layout_summary
+        Prefs.LAYOUT_DAILY -> R.id.layout_daily
+        Prefs.LAYOUT_BRIEF -> R.id.layout_brief
+        else -> R.id.layout_normal
+    }
+
+    /** 子菜单里的条目不能靠 Menu.findItem 找到，得递归下去。 */
+    private fun checkMenuItem(menu: Menu, id: Int) {
+        for (index in 0 until menu.size()) {
+            val item = menu.getItem(index)
+            if (item.itemId == id) {
+                item.isChecked = true
+                return
+            }
+            item.subMenu?.let { checkMenuItem(it, id) }
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> binding.drawerLayout.openDrawer(GravityCompat.START)
             R.id.action_trash -> startActivity(Intent(this, TrashActivity::class.java))
             R.id.action_settings -> startActivity(Intent(this, SettingsActivity::class.java))
+
+            R.id.sort_updated -> setSort(NoteSort.UPDATED_DESC)
+            R.id.sort_created_desc -> setSort(NoteSort.CREATED_DESC)
+            R.id.sort_created_asc -> setSort(NoteSort.CREATED_ASC)
+
+            R.id.layout_normal -> setLayout(Prefs.LAYOUT_NORMAL)
+            R.id.layout_card -> setLayout(Prefs.LAYOUT_CARD)
+            R.id.layout_grid -> setLayout(Prefs.LAYOUT_GRID)
+            R.id.layout_summary -> setLayout(Prefs.LAYOUT_SUMMARY)
+            R.id.layout_daily -> setLayout(Prefs.LAYOUT_DAILY)
+            R.id.layout_brief -> setLayout(Prefs.LAYOUT_BRIEF)
+
             else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
 
+    private fun setSort(value: Int) {
+        Prefs.sortBy = value
+        sortOrder.value = value
+        invalidateOptionsMenu()
+    }
+
+    private fun setLayout(value: Int) {
+        Prefs.layoutType = value
+        applyListLayout()
+        invalidateOptionsMenu()
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 }

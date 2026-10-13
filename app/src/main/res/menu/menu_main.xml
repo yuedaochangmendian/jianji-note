@@ -16,6 +16,53 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_sort"
+        android:title="@string/menu_sort"
+        app:showAsAction="never">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/sort_updated"
+                    android:title="@string/sort_updated" />
+                <item
+                    android:id="@+id/sort_created_desc"
+                    android:title="@string/sort_created_desc" />
+                <item
+                    android:id="@+id/sort_created_asc"
+                    android:title="@string/sort_created_asc" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_layout"
+        android:title="@string/menu_layout"
+        app:showAsAction="never">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/layout_normal"
+                    android:title="@string/layout_normal" />
+                <item
+                    android:id="@+id/layout_card"
+                    android:title="@string/layout_card" />
+                <item
+                    android:id="@+id/layout_grid"
+                    android:title="@string/layout_grid" />
+                <item
+                    android:id="@+id/layout_summary"
+                    android:title="@string/layout_summary" />
+                <item
+                    android:id="@+id/layout_daily"
+                    android:title="@string/layout_daily" />
+                <item
+                    android:id="@+id/layout_brief"
+                    android:title="@string/layout_brief" />
+            </group>
+        </menu>
+    </item>
+
+    <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings"
         android:title="@string/title_settings"

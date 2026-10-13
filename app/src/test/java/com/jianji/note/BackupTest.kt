@@ -70,6 +70,6 @@ class BackupTest {
     fun `导出的 JSON 带有格式版本`() {
         val json = Backup.encode(emptyList(), emptyList())
         assertTrue(json.contains("\"app\": \"jianji\""))
-        assertTrue(json.contains("\"version\": 1"))
+        assertTrue(json.contains("\"version\": 2"))
     }
 }

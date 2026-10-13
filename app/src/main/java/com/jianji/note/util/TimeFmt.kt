@@ -28,6 +28,14 @@ object TimeFmt {
         return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(millis))
     }
 
+    /** 「日历」列表样式左侧的大号日期。 */
+    fun dayOfMonth(millis: Long): String =
+        SimpleDateFormat("dd", Locale.getDefault()).format(Date(millis))
+
+    /** 「日历」列表样式左侧的月份标签，中文下是「10月」，英文下是「Oct」。 */
+    fun monthLabel(millis: Long): String =
+        SimpleDateFormat("MMM", Locale.getDefault()).format(Date(millis))
+
     private fun sameDay(a: Calendar, b: Calendar): Boolean =
         a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
             a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)

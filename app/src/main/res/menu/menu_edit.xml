@@ -3,10 +3,39 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_undo"
+        android:icon="@drawable/ic_undo"
+        android:title="@string/action_undo"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_redo"
+        android:icon="@drawable/ic_redo"
+        android:title="@string/action_redo"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_preview"
+        android:icon="@drawable/ic_preview"
+        android:title="@string/action_preview"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_markdown"
+        android:icon="@drawable/ic_markdown"
+        android:title="@string/action_markdown"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_lock"
+        android:title="@string/action_lock"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_pin"
         android:icon="@drawable/ic_pin_off"
         android:title="@string/action_pin"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_move"

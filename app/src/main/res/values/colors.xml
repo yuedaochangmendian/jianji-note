@@ -8,4 +8,9 @@
     <color name="normal_surface">#FFFFFFFF</color>
     <color name="drawer_selected">#1F3F51B5</color>
     <color name="passcode_bg">#FF222222</color>
+    <color name="md_code_bg">#FFF1F1F1</color>
+    <color name="md_code_fg">#FF8E24AA</color>
+    <color name="md_quote">#FF9E9E9E</color>
+    <color name="md_link">#FF1565C0</color>
+    <color name="tool_text">#FF3F51B5</color>
 </resources>

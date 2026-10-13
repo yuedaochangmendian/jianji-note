@@ -48,6 +48,10 @@
             android:name=".ui.WebDavActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.MarkdownPreviewActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

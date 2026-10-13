@@ -12,7 +12,10 @@
 | 组织 | 文件夹（新建 / 重命名 / 删除，删除后笔记回到「未分类」）、置顶、回收站（可恢复 / 彻底删除 / 一键清空） |
 | 查找 | 全文搜索（标题 + 正文），匹配不到时显示空状态 |
 | 外观 | 浅色 / 深色 / 跟随系统；正文字号 12–30sp；行距 1.0–2.5 倍 |
-| 安全 | 4 位数字应用密码（离开应用自动重新上锁） |
+| 列表 | 六种列表样式（普通 / 卡片 / 网格 / 摘要 / 日历 / 精简）+ 三种排序，都保持置顶优先 |
+| 编辑 | 撤销 / 重做（最多 60 步）、编辑器工具栏（缩进、列表、待办、引用、分隔线、插入时间日期） |
+| Markdown | 可切换 Markdown 模式，工具栏变 H1/H2/H3、加粗、列表、待办、引用、代码、代码块、链接；预览页渲染成富文本 |
+| 安全 | 4 位数字应用密码（离开应用自动重新上锁）；可对单条笔记单独加锁 |
 | 数据 | 导出备份 / 导入备份（JSON，走系统文件选择器），一键清空 |
 | 同步 | WebDAV（坚果云、Nextcloud、自建 NAS 都行）：测试连接、上传快照、从云端选备份恢复、启动时自动备份 |
 
@@ -65,6 +68,7 @@ app/src/main/java/com/jianji/note/
 │   ├── NoteDao.kt / FolderDao.kt
 │   ├── AppDatabase.kt
 │   ├── Repository.kt           事务封装（删文件夹时迁移笔记、云恢复时整体替换等）
+│   ├── NoteSort.kt             列表排序（纯函数，可测）
 │   └── Prefs.kt                SharedPreferences 设置项
 ├── net/
 │   ├── WebDavClient.kt         PROPFIND / PUT / GET / MKCOL
@@ -74,9 +78,11 @@ app/src/main/java/com/jianji/note/
 ├── ui/
 │   ├── BaseActivity.kt         统一关闭系统自动避让，由各页面自己处理 insets
 │   ├── MainActivity.kt         列表 + 抽屉 + 搜索 + 长按菜单 + 解锁
-│   ├── NoteListAdapter.kt
+│   ├── NoteListAdapter.kt      六种列表样式各自一个 item 布局
 │   ├── DrawerAdapter.kt        抽屉项（全部 / 未分类 / 文件夹 / 新建）
-│   ├── EditActivity.kt         编辑器
+│   ├── EditActivity.kt         编辑器（撤销重做、锁定、Markdown 切换、工具栏）
+│   ├── MarkdownPreviewActivity.kt
+│   ├── MarkdownRender.kt       把解析结果渲染成 Spannable
 │   ├── TrashActivity.kt        回收站
 │   ├── SettingsActivity.kt     设置
 │   ├── WebDavActivity.kt       云同步配置与操作
@@ -85,13 +91,16 @@ app/src/main/java/com/jianji/note/
 ├── util/
 │   ├── Backup.kt               JSON 导入导出
 │   ├── TimeFmt.kt              时间显示（今天显示时刻，今年显示月日…）
+│   ├── MarkdownParser.kt       Markdown 解析（纯函数，可测）
+│   ├── EditorTools.kt          工具栏在光标处的文本操作（纯函数，可测）
 │   └── WindowInsetsExt.kt      系统栏 insets 处理
 └── widget/passcode/            内置的 PasscodeView（第三方，见声明文件）
 ```
 
 ## 已知限制
 
-- 只有列表 / 编辑 / 文件夹 / 搜索 / 置顶 / 回收站 / 密码锁 / 备份 / WebDAV 同步。**没有** Markdown 渲染、富文本、图片附件、桌面小组件。
+- **没有**图片附件、富文本、自定义字体、自定义背景、桌面小组件、快捷方式、导出 TXT/PDF、分享为图片、语言切换。列表样式还差原版的 4 种（Material Design / 小米便签 / 锤子 / 熊掌记），那些主要是视觉差异。
+- Markdown 渲染是自己写的，支持 H1–H3、加粗、斜体、删除线、行内代码、代码块、无序/有序列表、待办、引用、链接、分割线；**不支持**表格、脚注、嵌套列表。
 - 云同步是快照式覆盖，不是双向合并：上传会整体替换云端文件，恢复会先清空本机再导入（有二次确认）。多设备同时改会产生覆盖，不会智能合并。
 - 密码锁是 4 位数字，存在 SharedPreferences 里（明文）。防的是别人拿起手机翻看，不是防取证级的攻击；忘记密码只能通过系统「清除数据」找回。
 - WebDAV 密码同样明文存在 SharedPreferences 里。

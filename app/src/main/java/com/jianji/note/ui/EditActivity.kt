@@ -1,18 +1,25 @@
 package com.jianji.note.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jianji.note.App
 import com.jianji.note.R
 import com.jianji.note.data.Note
 import com.jianji.note.data.Prefs
 import com.jianji.note.databinding.ActivityEditBinding
+import com.jianji.note.util.EditorTools
 import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -26,8 +33,15 @@ class EditActivity : BaseActivity() {
 
     private var note: Note? = null
     private var saveJob: Job? = null
+    private var snapshotJob: Job? = null
     private var dirty = false
     private var loading = false
+
+    private data class Snapshot(val title: String, val content: String)
+
+    private val undoStack = ArrayDeque<Snapshot>()
+    private val redoStack = ArrayDeque<Snapshot>()
+    private var lastCommitted: Snapshot? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,18 +56,14 @@ class EditActivity : BaseActivity() {
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_arrow_back)
         supportActionBar?.title = ""
 
-        binding.etContent.textSize = Prefs.fontSize.toFloat()
-        binding.etContent.setLineSpacing(0f, Prefs.lineSpacing)
-        binding.etTitle.textSize = (Prefs.fontSize + 4).toFloat()
+        applyTextStyle()
 
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
             override fun afterTextChanged(s: Editable?) {
                 if (loading) return
-                dirty = true
-                updateCount()
-                scheduleSave()
+                onEdited()
             }
         }
         binding.etTitle.addTextChangedListener(watcher)
@@ -62,14 +72,22 @@ class EditActivity : BaseActivity() {
         val noteId = intent.getLongExtra(EXTRA_NOTE_ID, 0L)
         if (noteId == 0L) {
             note = Note()
+            lastCommitted = currentSnapshot()
             binding.etContent.requestFocus()
+            refreshBottom()
         } else {
             lifecycleScope.launch {
                 note = repo.noteDao.findById(noteId)
                 bindNote()
+                refreshBottom()
             }
         }
-        updateCount()
+    }
+
+    private fun applyTextStyle() {
+        binding.etContent.textSize = Prefs.fontSize.toFloat()
+        binding.etContent.setLineSpacing(0f, Prefs.lineSpacing)
+        binding.etTitle.textSize = (Prefs.fontSize + 4).toFloat()
     }
 
     private fun bindNote() {
@@ -78,7 +96,17 @@ class EditActivity : BaseActivity() {
         binding.etTitle.setText(current.title)
         binding.etContent.setText(current.content)
         loading = false
+        undoStack.clear()
+        redoStack.clear()
+        lastCommitted = currentSnapshot()
         invalidateOptionsMenu()
+    }
+
+    private fun onEdited() {
+        dirty = true
+        updateCount()
+        scheduleSave()
+        scheduleSnapshot()
     }
 
     private fun updateCount() {
@@ -86,7 +114,122 @@ class EditActivity : BaseActivity() {
         binding.tvCount.text = getString(R.string.editor_count, count)
     }
 
-    /** 输入停止 1.2 秒后落库，避免每次按键都写数据库。 */
+    private fun refreshBottom() {
+        updateCount()
+        buildToolBar()
+    }
+
+    private fun currentSnapshot() = Snapshot(
+        binding.etTitle.text?.toString().orEmpty(),
+        binding.etContent.text?.toString().orEmpty(),
+    )
+
+    /** 输入停顿 700ms 才记一次历史，避免每敲一个字都入栈。 */
+    private fun scheduleSnapshot() {
+        snapshotJob?.cancel()
+        snapshotJob = lifecycleScope.launch {
+            delay(700)
+            commitSnapshot()
+        }
+    }
+
+    private fun commitSnapshot() {
+        val current = currentSnapshot()
+        if (current == lastCommitted) return
+        lastCommitted?.let { undoStack.addLast(it) }
+        while (undoStack.size > MAX_HISTORY) undoStack.removeFirst()
+        redoStack.clear()
+        lastCommitted = current
+    }
+
+    private fun undo() {
+        commitSnapshot()
+        val previous = undoStack.removeLastOrNull()
+        if (previous == null) {
+            toast(getString(R.string.toast_undo_empty))
+            return
+        }
+        lastCommitted?.let { redoStack.addLast(it) }
+        applySnapshot(previous)
+        lastCommitted = previous
+    }
+
+    private fun redo() {
+        commitSnapshot()
+        val next = redoStack.removeLastOrNull()
+        if (next == null) {
+            toast(getString(R.string.toast_redo_empty))
+            return
+        }
+        lastCommitted?.let { undoStack.addLast(it) }
+        applySnapshot(next)
+        lastCommitted = next
+    }
+
+    private fun applySnapshot(snapshot: Snapshot) {
+        loading = true
+        binding.etTitle.setText(snapshot.title)
+        binding.etContent.setText(snapshot.content)
+        loading = false
+        dirty = true
+        binding.etContent.setSelection(binding.etContent.text?.length ?: 0)
+        updateCount()
+        scheduleSave()
+    }
+
+    private fun buildToolBar() {
+        val markdown = note?.markdown == true
+        binding.toolScroll.visibility = View.VISIBLE
+        binding.toolBar.removeAllViews()
+
+        val color = ContextCompat.getColor(this, R.color.tool_text)
+        val ripple = resolveSelectableItemBackground()
+        val tools = if (markdown) MARKDOWN_TOOLS else NORMAL_TOOLS
+
+        tools.forEach { (tool, label) ->
+            val button = TextView(this).apply {
+                text = label
+                textSize = 14f
+                gravity = Gravity.CENTER
+                setTextColor(color)
+                setPadding(dp(14), dp(10), dp(14), dp(10))
+                if (ripple != 0) setBackgroundResource(ripple)
+                setOnClickListener { applyTool(tool) }
+            }
+            binding.toolBar.addView(button)
+        }
+    }
+
+    private fun applyTool(tool: EditorTools.Tool) {
+        val edit = binding.etContent
+        val start = edit.selectionStart.coerceAtLeast(0)
+        val end = edit.selectionEnd.coerceAtLeast(start)
+        val result = EditorTools.apply(
+            source = edit.text?.toString().orEmpty(),
+            start = start,
+            end = end,
+            tool = tool,
+            now = System.currentTimeMillis(),
+        )
+        loading = true
+        edit.setText(result.text)
+        edit.setSelection(result.selection.coerceIn(0, result.text.length))
+        loading = false
+        dirty = true
+        updateCount()
+        scheduleSave()
+        scheduleSnapshot()
+        edit.requestFocus()
+    }
+
+    private fun resolveSelectableItemBackground(): Int {
+        val value = TypedValue()
+        theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, value, true)
+        return value.resourceId
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
     private fun scheduleSave() {
         saveJob?.cancel()
         saveJob = lifecycleScope.launch {
@@ -128,17 +271,23 @@ class EditActivity : BaseActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_edit, menu)
-        applyPinState(menu)
+        applyMenuState(menu)
         return true
     }
 
-    /** 置顶按钮的图标和标题都要反映当前状态，否则点了看不出任何变化。 */
-    private fun applyPinState(menu: Menu) {
+    private fun applyMenuState(menu: Menu) {
         val pinned = note?.pinned == true
         menu.findItem(R.id.action_pin)?.apply {
             setIcon(if (pinned) R.drawable.ic_pin else R.drawable.ic_pin_off)
             title = getString(if (pinned) R.string.action_unpin else R.string.action_pin)
         }
+        menu.findItem(R.id.action_lock)?.title = getString(
+            if (note?.locked == true) R.string.action_unlock else R.string.action_lock,
+        )
+        menu.findItem(R.id.action_markdown)?.title = getString(
+            if (note?.markdown == true) R.string.editor_switch_to_normal
+            else R.string.editor_switch_to_markdown,
+        )
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -147,38 +296,77 @@ class EditActivity : BaseActivity() {
                 finish()
                 return true
             }
-            R.id.action_pin -> lifecycleScope.launch {
-                val current = note ?: return@launch
-                val pinned = !current.pinned
-                note = current.copy(pinned = pinned)
-                // 新笔记还没落库，这里强制保存一次，否则置顶会随退出丢失
-                persist(force = true)
-                invalidateOptionsMenu()
-                Toast.makeText(
-                    this@EditActivity,
-                    if (pinned) R.string.toast_pinned else R.string.toast_unpinned,
-                    Toast.LENGTH_SHORT,
-                ).show()
-            }
+            R.id.action_undo -> undo()
+            R.id.action_redo -> redo()
+            R.id.action_preview -> preview()
+            R.id.action_markdown -> toggleMarkdown()
+            R.id.action_pin -> togglePin()
+            R.id.action_lock -> toggleLock()
             R.id.action_move -> moveToFolder()
             R.id.action_share -> shareNote()
-            R.id.action_delete -> MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.action_delete)
-                .setMessage(R.string.editor_delete_message)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.action_delete) { _, _ ->
-                    lifecycleScope.launch {
-                        note?.takeIf { it.id != 0L }?.let {
-                            repo.noteDao.moveToTrash(it.id, System.currentTimeMillis())
-                        }
-                        dirty = false
-                        finish()
-                    }
-                }
-                .show()
+            R.id.action_delete -> confirmDelete()
             else -> return super.onOptionsItemSelected(item)
         }
         return true
+    }
+
+    private fun togglePin() {
+        lifecycleScope.launch {
+            val current = note ?: return@launch
+            val pinned = !current.pinned
+            note = current.copy(pinned = pinned)
+            // 新笔记还没落库，这里强制保存一次，否则置顶会随退出丢失
+            persist(force = true)
+            invalidateOptionsMenu()
+            toast(getString(if (pinned) R.string.toast_pinned else R.string.toast_unpinned))
+        }
+    }
+
+    private fun toggleLock() {
+        if (!Prefs.passcodeEnabled) {
+            toast(getString(R.string.toast_need_passcode_first))
+            return
+        }
+        lifecycleScope.launch {
+            val current = note ?: return@launch
+            val locked = !current.locked
+            note = current.copy(locked = locked)
+            persist(force = true)
+            invalidateOptionsMenu()
+            toast(getString(if (locked) R.string.toast_locked else R.string.toast_unlocked))
+        }
+    }
+
+    private fun toggleMarkdown() {
+        lifecycleScope.launch {
+            val current = note ?: return@launch
+            val markdown = !current.markdown
+            note = current.copy(markdown = markdown)
+            persist(force = true)
+            buildToolBar()
+            invalidateOptionsMenu()
+            toast(
+                getString(
+                    if (markdown) R.string.toast_markdown_on else R.string.toast_markdown_off,
+                ),
+            )
+        }
+    }
+
+    private fun preview() {
+        lifecycleScope.launch {
+            saveJob?.cancel()
+            persist(force = true)
+            val id = note?.id ?: 0L
+            if (id == 0L) {
+                toast(getString(R.string.preview_empty))
+                return@launch
+            }
+            startActivity(
+                Intent(this@EditActivity, MarkdownPreviewActivity::class.java)
+                    .putExtra(MarkdownPreviewActivity.EXTRA_NOTE_ID, id),
+            )
+        }
     }
 
     private fun moveToFolder() {
@@ -193,11 +381,10 @@ class EditActivity : BaseActivity() {
                 .setItems(labels.toTypedArray()) { _, index ->
                     val folderId = if (index == 0) null else folders[index - 1].id
                     lifecycleScope.launch {
-                        val current = note ?: return@launch
                         persist()
                         val id = note?.id ?: 0L
                         if (id != 0L) repo.noteDao.setFolder(id, folderId)
-                        note = (note ?: current).copy(folderId = folderId)
+                        note = note?.copy(folderId = folderId)
                     }
                 }
                 .show()
@@ -207,16 +394,65 @@ class EditActivity : BaseActivity() {
     private fun shareNote() {
         val title = binding.etTitle.text?.toString().orEmpty()
         val content = binding.etContent.text?.toString().orEmpty()
-        val text = if (title.isBlank()) content else "$title\n\n$content"
+        val text = if (title.isBlank()) content else title + "\n\n" + content
         if (text.isBlank()) return
-        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(android.content.Intent.EXTRA_TEXT, text)
+            putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(android.content.Intent.createChooser(intent, getString(R.string.action_share)))
+        startActivity(Intent.createChooser(intent, getString(R.string.action_share)))
+    }
+
+    private fun confirmDelete() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.action_delete)
+            .setMessage(R.string.editor_delete_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
+                lifecycleScope.launch {
+                    note?.takeIf { it.id != 0L }?.let {
+                        repo.noteDao.moveToTrash(it.id, System.currentTimeMillis())
+                    }
+                    dirty = false
+                    finish()
+                }
+            }
+            .show()
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     companion object {
         const val EXTRA_NOTE_ID = "note_id"
+        private const val MAX_HISTORY = 60
+
+        private val NORMAL_TOOLS = listOf(
+            EditorTools.Tool.INDENT to "缩进",
+            EditorTools.Tool.BULLET to "• 列表",
+            EditorTools.Tool.ORDERED to "1. 列表",
+            EditorTools.Tool.TODO to "☐ 待办",
+            EditorTools.Tool.QUOTE to "引用",
+            EditorTools.Tool.DIVIDER to "分隔线",
+            EditorTools.Tool.TIME to "时间",
+            EditorTools.Tool.DATE to "日期",
+        )
+
+        private val MARKDOWN_TOOLS = listOf(
+            EditorTools.Tool.H1 to "H1",
+            EditorTools.Tool.H2 to "H2",
+            EditorTools.Tool.H3 to "H3",
+            EditorTools.Tool.BOLD to "B",
+            EditorTools.Tool.BULLET to "•",
+            EditorTools.Tool.ORDERED to "1.",
+            EditorTools.Tool.TODO to "☐",
+            EditorTools.Tool.TODO_DONE to "☑",
+            EditorTools.Tool.QUOTE to "引用",
+            EditorTools.Tool.CODE to "代码",
+            EditorTools.Tool.CODE_BLOCK to "代码块",
+            EditorTools.Tool.LINK to "链接",
+            EditorTools.Tool.DIVIDER to "分隔线",
+        )
     }
 }

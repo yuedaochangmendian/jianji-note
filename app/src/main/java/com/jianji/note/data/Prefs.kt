@@ -15,6 +15,13 @@ object Prefs {
     const val SORT_CREATED = 1
     const val SORT_TITLE = 2
 
+    const val LAYOUT_NORMAL = 0
+    const val LAYOUT_CARD = 1
+    const val LAYOUT_GRID = 2
+    const val LAYOUT_SUMMARY = 3
+    const val LAYOUT_DAILY = 4
+    const val LAYOUT_BRIEF = 5
+
     private lateinit var sp: SharedPreferences
 
     fun init(context: Context) {
@@ -31,6 +38,11 @@ object Prefs {
     var sortBy: Int
         get() = sp.getInt("sort_by", SORT_UPDATED)
         set(value) = sp.edit().putInt("sort_by", value).apply()
+
+    /** 列表样式，取值见 LAYOUT_*。 */
+    var layoutType: Int
+        get() = sp.getInt("layout_type", LAYOUT_NORMAL)
+        set(value) = sp.edit().putInt("layout_type", value).apply()
 
     /** 正文字号，sp。 */
     var fontSize: Int

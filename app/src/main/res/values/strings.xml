@@ -5,6 +5,38 @@
     <!-- 列表 / 通用 -->
     <string name="empty_hint">还没有笔记，点右下角新建</string>
     <string name="empty_search">没有找到匹配的笔记</string>
+
+    <!-- 排序与列表样式 -->
+    <string name="menu_sort">排序</string>
+    <string name="sort_updated">按修改时间</string>
+    <string name="sort_created_desc">按创建时间（新→旧）</string>
+    <string name="sort_created_asc">按创建时间（旧→新）</string>
+    <string name="menu_layout">列表样式</string>
+    <string name="layout_normal">普通</string>
+    <string name="layout_card">卡片</string>
+    <string name="layout_grid">网格</string>
+    <string name="layout_summary">摘要</string>
+    <string name="layout_daily">日历</string>
+    <string name="layout_brief">精简</string>
+
+    <!-- 编辑器 -->
+    <string name="action_redo">重做</string>
+    <string name="action_lock">锁定</string>
+    <string name="action_unlock">解锁</string>
+    <string name="action_preview">预览</string>
+    <string name="action_markdown">Markdown 开关</string>
+    <string name="editor_switch_to_markdown">切换到 Markdown 模式</string>
+    <string name="editor_switch_to_normal">切换到普通模式</string>
+    <string name="title_preview">预览</string>
+    <string name="toast_note_locked_cant_delete">该笔记已锁定，请先解锁再删除</string>
+    <string name="toast_undo_empty">没有可撤销的操作</string>
+    <string name="toast_redo_empty">没有可重做的操作</string>
+    <string name="toast_locked">已锁定，下次打开需要密码</string>
+    <string name="toast_unlocked">已解锁</string>
+    <string name="toast_need_passcode_first">请先在设置里开启应用密码</string>
+    <string name="toast_markdown_on">已切换到 Markdown 模式</string>
+    <string name="toast_markdown_off">已切换到普通模式</string>
+    <string name="preview_empty">这条笔记还是空的</string>
     <string name="action_new_note">新建笔记</string>
     <string name="action_search">搜索</string>
     <string name="action_pin">置顶</string>
