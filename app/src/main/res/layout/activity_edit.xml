@@ -53,16 +53,6 @@
         android:textColor="?attr/colorOnSurface"
         android:textColorHint="?android:attr/textColorTertiary" />
 
-    <TextView
-        android:id="@+id/tvCount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="2dp"
-        android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="?android:attr/textColorTertiary" />
-
     <HorizontalScrollView
         android:id="@+id/imageStrip"
         android:layout_width="match_parent"

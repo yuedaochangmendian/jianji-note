@@ -92,6 +92,7 @@ class EditActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_arrow_back)
+        // 先留空，免得闪一下应用名；紧接着 updateCount() 会写入字数
         supportActionBar?.title = ""
 
         applyTextStyle()
@@ -154,7 +155,8 @@ class EditActivity : BaseActivity() {
     private fun updateCount() {
         val count = binding.etContent.text?.length ?: 0
         val images = ImageList.decode(note?.images).size
-        binding.tvCount.text = if (images > 0) {
+        // 字数常驻顶部栏，不再占用正文下方的空间
+        supportActionBar?.title = if (images > 0) {
             getString(R.string.editor_count_with_images, count, images)
         } else {
             getString(R.string.editor_count, count)
