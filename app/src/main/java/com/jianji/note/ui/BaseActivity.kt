@@ -14,7 +14,7 @@ import com.jianji.note.data.Prefs
  * 公共的窗口与样式处理：
  * - 关闭系统自动避让，由各页面自己用 insets 处理（Android 15+ 强制边到边）
  * - 把「强调色」叠加到当前主题上
- * - 状态栏图标明暗
+ * - 状态栏与导航栏图标的明暗
  * - 「应用栏用强调色」开关
  */
 abstract class BaseActivity : AppCompatActivity() {
@@ -34,10 +34,20 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun currentAccent(): Int =
         MaterialColors.getColor(window.decorView, R.attr.jianjiAccent)
 
+    /**
+     * 当前页面是不是深色底。影响系统栏图标的明暗取值。
+     * 密码锁页固定是深色底，需要覆盖。
+     */
+    protected open fun isDarkSurface(): Boolean = isNightMode()
+
     protected fun updateStatusBarIcons() {
-        val lightIcons = !isNightMode() && !Prefs.tintAppBar
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = lightIcons
+        val darkSurface = isDarkSurface()
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            // 状态栏区域被应用栏覆盖，开了「应用栏用强调色」就必须用白色图标
+            isAppearanceLightStatusBars = !darkSurface && !Prefs.tintAppBar
+            // 底部导航栏区域露出的是页面底色，跟随明暗主题即可
+            isAppearanceLightNavigationBars = !darkSurface
+        }
     }
 
     /**
@@ -49,7 +59,10 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun applyAppBarTint(appBar: View?) {
         if (!Prefs.tintAppBar || appBar == null) return
         appBar.setBackgroundColor(currentAccent())
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = false
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            // 应用栏是强调色（深色底），底部导航栏区域不受影响，仍按页面底色来
+            isAppearanceLightNavigationBars = !isDarkSurface()
+        }
     }
 }

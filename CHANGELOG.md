@@ -1,3 +1,11 @@
+## v1.4.2
+
+### 修复：底部导航栏图标明暗不对
+
+我只设置了状态栏图标的明暗（`isAppearanceLightStatusBars`），**完全没有处理底部导航栏**（`isAppearanceLightNavigationBars`）。Android 15 起边到边是强制的，底部导航栏的背景被系统透明化，图标明暗必须由应用自己声明——不声明就只能碰运气，表现是浅色背景下白色图标（或反过来）看不清。
+
+现在两个系统栏的图标明暗都由 `BaseActivity` 统一处理。密码锁页是固定深色底，单独覆盖 `isDarkSurface()`，图标保持白色。
+
 ## v1.4.1
 
 ### 修复：WebDAV 完全不可用

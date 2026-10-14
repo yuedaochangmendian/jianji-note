@@ -10,6 +10,9 @@ import com.jianji.note.widget.passcode.PasscodeView
 /** 应用密码：MODE_SET 两次输入设置新密码，MODE_CHECK 校验已有密码。 */
 class PasscodeActivity : BaseActivity() {
 
+    /** 密码锁页固定用深色底（见 activity_passcode.xml 的 passcode_bg），系统栏图标要用白的。 */
+    override fun isDarkSurface(): Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityPasscodeBinding.inflate(layoutInflater)

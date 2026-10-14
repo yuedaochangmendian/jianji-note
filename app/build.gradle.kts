@@ -16,8 +16,8 @@ android {
         applicationId = "com.jianji.note"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.4.1"
+        versionCode = 7
+        versionName = "1.4.2"
     }
 
     // 必须先声明 signingConfigs，buildTypes 里才能按名字取到
