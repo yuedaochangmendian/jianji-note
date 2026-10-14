@@ -6,8 +6,8 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.view.View
-import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import com.google.android.material.color.MaterialColors
 import com.jianji.note.R
 import com.jianji.note.data.Prefs
 import com.jianji.note.util.AppFiles
@@ -34,13 +34,13 @@ object UiStyle {
     }
 
     /**
-     * 给视图铺背景图，并在上面盖一层半透明遮罩，
-     * 否则图片一花正文就看不清了。没有设置背景时用主题原色。
+     * 给视图铺背景图，并在上面盖一层半透明遮罩，否则图片一花正文就看不清了。
+     * 没设背景时填的是和顶栏同一个 colorSurface，保证整屏色调一致。
      */
-    fun applyBackground(view: View, @ColorRes fallback: Int, imageName: String) {
+    fun applyBackground(view: View, imageName: String) {
         val image = loadBackground(view.context, imageName)
         if (image == null) {
-            view.setBackgroundColor(ContextCompat.getColor(view.context, fallback))
+            view.setBackgroundColor(MaterialColors.getColor(view, R.attr.jianjiSurface))
             return
         }
         val scrim = ColorDrawable(ContextCompat.getColor(view.context, R.color.bg_scrim))

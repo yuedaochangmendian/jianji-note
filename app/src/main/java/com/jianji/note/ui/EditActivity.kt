@@ -18,7 +18,6 @@ import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jianji.note.App
 import com.jianji.note.R
@@ -30,6 +29,7 @@ import com.jianji.note.util.AppFiles
 import com.jianji.note.util.Exporter
 import com.jianji.note.util.ImageList
 import com.jianji.note.util.ImageLoader
+import com.jianji.note.util.ViewAnim
 import com.jianji.note.util.applySystemBarInsets
 import java.io.File
 import kotlinx.coroutines.Job
@@ -87,7 +87,7 @@ class EditActivity : BaseActivity() {
         // 输入法弹出时也要把内容顶上去，否则正文会被键盘挡住
         binding.root.applySystemBarInsets(bottom = true, includeIme = true)
         applyAppBarTint(binding.appBar)
-        UiStyle.applyBackground(binding.root, R.color.bg_fallback_surface, Prefs.backgroundEditor)
+        UiStyle.applyBackground(binding.root, Prefs.backgroundEditor)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -204,7 +204,7 @@ class EditActivity : BaseActivity() {
 
     private fun refreshImageStrip() {
         val names = ImageList.decode(note?.images)
-        binding.imageStrip.visibility = if (names.isEmpty()) View.GONE else View.VISIBLE
+        if (names.isEmpty()) ViewAnim.hide(binding.imageStrip) else ViewAnim.show(binding.imageStrip)
         binding.imageRow.removeAllViews()
         val size = dp(56)
         names.forEach { name ->
@@ -366,10 +366,11 @@ class EditActivity : BaseActivity() {
 
     private fun buildToolBar() {
         val markdown = note?.markdown == true
-        binding.toolScroll.visibility = View.VISIBLE
+        ViewAnim.show(binding.toolScroll)
         binding.toolBar.removeAllViews()
 
-        val color = ContextCompat.getColor(this, R.color.tool_text)
+        // 跟随「强调色」设置；之前写死成靛蓝，换配色时这里不跟着变
+        val color = currentAccent()
         val ripple = resolveSelectableItemBackground()
         val tools = if (markdown) MARKDOWN_TOOLS else NORMAL_TOOLS
 
@@ -391,6 +392,8 @@ class EditActivity : BaseActivity() {
             }
             binding.toolBar.addView(button)
         }
+        // 内容整体换掉了，淡入一下提示变化
+        ViewAnim.fadeIn(binding.toolBar)
     }
 
     private fun applyTool(tool: EditorTools.Tool) {

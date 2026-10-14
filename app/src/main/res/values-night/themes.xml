@@ -5,5 +5,7 @@
         <item name="colorPrimaryContainer">#283593</item>
         <item name="colorOnPrimaryContainer">#E8EAF6</item>
         <item name="jianjiAccent">@color/accent_indigo</item>
+        <item name="jianjiSurface">?attr/colorSurface</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
     </style>
 </resources>

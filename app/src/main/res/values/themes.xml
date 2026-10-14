@@ -5,6 +5,9 @@
         <item name="colorPrimaryContainer">@color/brand_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/brand_on_primary_container</item>
         <item name="jianjiAccent">@color/accent_indigo</item>
+        <item name="jianjiSurface">?attr/colorSurface</item>
+        <!-- 窗口底色也统一成 colorSurface，避免各页面之间出现色差 -->
+        <item name="android:windowBackground">?attr/colorSurface</item>
     </style>
 
     <!-- 强调色叠加层，运行时按设置 applyStyle 到当前主题上 -->

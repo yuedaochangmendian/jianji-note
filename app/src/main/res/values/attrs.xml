@@ -2,4 +2,7 @@
 <resources>
     <!-- 由「强调色」主题叠加层设置，代码里用它取当前强调色 -->
     <attr name="jianjiAccent" format="color" />
+
+    <!-- 页面主体的底色，显式指向 colorSurface，保证和顶栏/工具栏同色 -->
+    <attr name="jianjiSurface" format="color" />
 </resources>

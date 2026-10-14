@@ -94,8 +94,8 @@ class MainActivity : BaseActivity() {
         binding.coordinator.applySystemBarInsets()
         binding.drawerPanel.applySystemBarInsets()
         applyAppBarTint(binding.appBar)
-        UiStyle.applyBackground(binding.coordinator, R.color.bg_fallback_surface, Prefs.backgroundMain)
-        UiStyle.applyBackground(binding.drawerPanel, R.color.bg_fallback_surface, Prefs.backgroundDrawer)
+        UiStyle.applyBackground(binding.coordinator, Prefs.backgroundMain)
+        UiStyle.applyBackground(binding.drawerPanel, Prefs.backgroundDrawer)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

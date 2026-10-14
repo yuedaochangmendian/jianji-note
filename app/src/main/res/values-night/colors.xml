@@ -23,5 +23,4 @@
     <color name="accent_rose">#FFF06292</color>
     <color name="accent_rose_on">#FF4A0025</color>
     <color name="bg_scrim">#B3000000</color>
-    <color name="bg_fallback_surface">#FF121212</color>
 </resources>
