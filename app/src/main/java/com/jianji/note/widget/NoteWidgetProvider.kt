@@ -57,7 +57,22 @@ class NoteWidgetProvider : AppWidgetProvider() {
                 ComponentName(context, NoteWidgetProvider::class.java),
             )
             if (ids.isEmpty()) return
-            App.appScope.launch { ids.forEach { render(context, manager, it) } }
+            App.appScope.launch {
+                // 列表页每次回到前台都会走到这里，数据没变就别白刷一遍
+                val fingerprint = buildFingerprint()
+                if (fingerprint == Prefs.widgetFingerprint) return@launch
+                Prefs.widgetFingerprint = fingerprint
+                ids.forEach { render(context, manager, it) }
+            }
+        }
+
+        /** 笔记数量 + 最后修改时间 + 文件夹构成；任一变化就重建。 */
+        private suspend fun buildFingerprint(): String = buildString {
+            append(App.repo.noteDao.activeCount()).append(':')
+            append(App.repo.noteDao.newestUpdate()).append(':')
+            append(
+                App.repo.folderDao.loadAll().joinToString(",") { it.id.toString() + it.name },
+            )
         }
 
         suspend fun render(context: Context, manager: AppWidgetManager, widgetId: Int) {

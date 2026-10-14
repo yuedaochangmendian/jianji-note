@@ -13,7 +13,6 @@ object Prefs {
 
     const val SORT_UPDATED = 0
     const val SORT_CREATED = 1
-    const val SORT_TITLE = 2
 
     const val LAYOUT_NORMAL = 0
     const val LAYOUT_CARD = 1
@@ -133,6 +132,11 @@ object Prefs {
     var webdavLastResult: String
         get() = sp.getString("webdav_last_result", "").orEmpty()
         set(value) = sp.edit().putString("webdav_last_result", value).apply()
+
+    /** 小组件数据指纹：没变就不重建 RemoteViews。 */
+    var widgetFingerprint: String
+        get() = sp.getString("widget_fingerprint", "").orEmpty()
+        set(value) = sp.edit().putString("widget_fingerprint", value).apply()
 
     val webdavConfigured: Boolean
         get() = webdavUrl.isNotBlank() && webdavUser.isNotBlank()

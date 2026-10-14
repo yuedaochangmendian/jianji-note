@@ -203,18 +203,25 @@ class EditActivity : BaseActivity() {
     }
 
     private fun refreshImageStrip() {
-        val names = ImageList.decode(note?.images)
-        if (names.isEmpty()) ViewAnim.hide(binding.imageStrip) else ViewAnim.show(binding.imageStrip)
-        binding.imageRow.removeAllViews()
-        val size = dp(56)
-        names.forEach { name ->
-            val thumb = ImageView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(8) }
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                setOnClickListener { confirmRemoveImage(name) }
+        // 缩略图解码是阻塞活，交给协程（ImageLoader 内部再切 IO）
+        lifecycleScope.launch {
+            val names = ImageList.decode(note?.images)
+            if (names.isEmpty()) ViewAnim.hide(binding.imageStrip) else ViewAnim.show(binding.imageStrip)
+            binding.imageRow.removeAllViews()
+            val size = dp(56)
+            names.forEach { name ->
+                val thumb = ImageView(this@EditActivity).apply {
+                    layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(8) }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setOnClickListener { confirmRemoveImage(name) }
+                }
+                ImageLoader.loadThumbnail(
+                    thumb,
+                    AppFiles.file(this@EditActivity, AppFiles.KIND_IMAGE, name),
+                    size,
+                )
+                binding.imageRow.addView(thumb)
             }
-            ImageLoader.loadThumbnail(thumb, AppFiles.file(this, AppFiles.KIND_IMAGE, name), size)
-            binding.imageRow.addView(thumb)
         }
     }
 

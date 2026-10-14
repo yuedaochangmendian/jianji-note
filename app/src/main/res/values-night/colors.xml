@@ -7,8 +7,6 @@
     <color name="md_code_fg">#FFCE93D8</color>
     <color name="md_quote">#FF9E9E9E</color>
     <color name="md_link">#FF90CAF9</color>
-    <color name="tool_text">#FF9FA8DA</color>
-
     <!-- 强调色：深色主题下换成更亮的色调，保证对比度 -->
     <color name="accent_indigo">#FF9FA8DA</color>
     <color name="accent_indigo_on">#FF1A237E</color>

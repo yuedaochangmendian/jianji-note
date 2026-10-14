@@ -63,4 +63,11 @@ interface NoteDao {
 
     @Query("DELETE FROM notes WHERE deletedAt IS NOT NULL")
     suspend fun emptyTrash()
+
+    /** 小组件判断「数据有没有变」用，避免每次回到前台都重建 RemoteViews。 */
+    @Query("SELECT COUNT(*) FROM notes WHERE deletedAt IS NULL")
+    suspend fun activeCount(): Int
+
+    @Query("SELECT IFNULL(MAX(updatedAt), 0) FROM notes")
+    suspend fun newestUpdate(): Long
 }

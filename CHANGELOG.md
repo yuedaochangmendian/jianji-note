@@ -1,3 +1,27 @@
+## v1.5.0
+
+代码审查后清理的三类问题。
+
+### P0 修复：密码锁会反复要密码
+
+原来在 `MainActivity.onStop` 里直接上锁。而打开一条笔记时 `MainActivity` 会被编辑页覆盖、同样触发 `onStop`，结果**每打开一条笔记再返回就要重输一次密码**；如果那条笔记还带单条锁定，得输两次。
+
+改为在 `App` 里注册 `ActivityLifecycleCallbacks` 数前台 activity，**只有全部退到后台才重新上锁**。旋屏与主题切换（`isChangingConfigurations`）不计入，避免切个强调色就被要求重新解锁。
+
+### P2 性能：剩下的阻塞 IO 搬离主线程
+
+上一版修了编辑页与主界面，漏掉的几处：
+
+- 设置页导入字体/背景图（可能是几 MB 的图片）、导出与导入备份的 JSON 读写
+- 缩略图解码（预览页是按屏幕宽度解的，大图在主线程解会卡）
+- 列表排序（`NoteSort.sort` 原来跑在收集链里，也就是主线程）
+- 小组件：列表页每次回到前台都会重建所有组件实例的 RemoteViews。现在用「笔记数 + 最后修改时间 + 文件夹构成」做指纹，没变就跳过
+
+### P3 清理
+
+- 删掉死代码：v1.0.0 遗留的 `item_note.xml`（被十种列表皮肤取代后无人引用）、`R.color.tool_text`、空的 `ThemeOverlay.Jianji.Accent` 样式、`Prefs.SORT_TITLE`、`WebDavClient.ensureDirectory()`、`MarkdownRender.render()` 没用上的 `textSizeSp` 参数
+- 修掉 Lint 的 4 个 error：内置 PasscodeView 布局改用 `app:tint`；小组件布局因为走的是系统 inflater、`android:tint` 才是正解，加了 `tools:ignore`
+
 ## v1.4.4
 
 ### 修复：页面主体与顶栏/工具栏颜色不统一

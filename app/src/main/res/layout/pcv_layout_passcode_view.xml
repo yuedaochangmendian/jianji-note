@@ -27,7 +27,7 @@
             android:alpha="0"
             android:scaleX="0"
             android:scaleY="0"
-            android:tint="#66e75d"
+            app:tint="#66e75d"
             app:srcCompat="@drawable/pcv_ic_check_bold_24dp" />
     </RelativeLayout>
 
@@ -138,7 +138,7 @@
             android:layout_alignParentRight="true"
             android:layout_below="@id/pcv_number7"
             android:scaleType="centerInside"
-            android:tint="#FF8A8A8A"
+            app:tint="#FF8A8A8A"
             app:srcCompat="@drawable/pcv_backspace" />
 
         <TextView
@@ -154,7 +154,7 @@
             android:layout_alignParentLeft="true"
             android:layout_below="@id/pcv_number7"
             android:scaleType="centerInside"
-            android:tint="#FF8A8A8A"
+            app:tint="#FF8A8A8A"
             app:srcCompat="@drawable/pcv_ic_check_bold_24dp" />
     </RelativeLayout>
 

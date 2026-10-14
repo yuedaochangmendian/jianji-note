@@ -17,6 +17,8 @@ import com.jianji.note.util.AppFiles
 import com.jianji.note.util.TimeFmt
 import com.jianji.note.util.applySystemBarInsets
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -185,16 +187,20 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun pickFont(uri: Uri) {
-        val name = AppFiles.import(this, uri, AppFiles.KIND_FONT)
-        if (name == null || !AppFiles.isFontFile(this, name)) {
-            name?.let { AppFiles.delete(this, AppFiles.KIND_FONT, it) }
-            toast(getString(R.string.font_failed))
-            return
+        lifecycleScope.launch {
+            val name = withContext(Dispatchers.IO) {
+                AppFiles.import(this@SettingsActivity, uri, AppFiles.KIND_FONT)
+            }
+            if (name == null || !AppFiles.isFontFile(this@SettingsActivity, name)) {
+                name?.let { AppFiles.delete(this@SettingsActivity, AppFiles.KIND_FONT, it) }
+                toast(getString(R.string.font_failed))
+                return@launch
+            }
+            Prefs.customFont = name
+            toast(getString(R.string.font_applied, name))
+            updateSummary()
+            recreate()
         }
-        Prefs.customFont = name
-        toast(getString(R.string.font_applied, name))
-        updateSummary()
-        recreate()
     }
 
     private fun backgroundMenu(slot: Int) {
@@ -216,19 +222,23 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun pickBackground(uri: Uri, slot: Int) {
-        val name = AppFiles.import(this, uri, AppFiles.KIND_BACKGROUND)
-        if (name == null) {
-            toast(getString(R.string.bg_failed))
-            return
+        lifecycleScope.launch {
+            val name = withContext(Dispatchers.IO) {
+                AppFiles.import(this@SettingsActivity, uri, AppFiles.KIND_BACKGROUND)
+            }
+            if (name == null) {
+                toast(getString(R.string.bg_failed))
+                return@launch
+            }
+            when (slot) {
+                SLOT_EDITOR -> Prefs.backgroundEditor = name
+                SLOT_DRAWER -> Prefs.backgroundDrawer = name
+                else -> Prefs.backgroundMain = name
+            }
+            toast(getString(R.string.bg_applied))
+            updateSummary()
+            recreate()
         }
-        when (slot) {
-            SLOT_EDITOR -> Prefs.backgroundEditor = name
-            SLOT_DRAWER -> Prefs.backgroundDrawer = name
-            else -> Prefs.backgroundMain = name
-        }
-        toast(getString(R.string.bg_applied))
-        updateSummary()
-        recreate()
     }
 
     private fun clearBackground(slot: Int) {
@@ -270,37 +280,45 @@ class SettingsActivity : BaseActivity() {
 
     private fun exportTo(uri: Uri) {
         lifecycleScope.launch {
-            try {
-                val json = Backup.encode(repo.noteDao.loadAll(), repo.folderDao.loadAll())
-                contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
-                toast(getString(R.string.export_success, uri.lastPathSegment.orEmpty()))
-            } catch (e: Exception) {
-                toast(getString(R.string.export_failed))
+            val name = withContext(Dispatchers.IO) {
+                try {
+                    val json = Backup.encode(repo.noteDao.loadAll(), repo.folderDao.loadAll())
+                    contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                    uri.lastPathSegment.orEmpty()
+                } catch (e: Exception) {
+                    null
+                }
             }
+            if (name == null) toast(getString(R.string.export_failed))
+            else toast(getString(R.string.export_success, name))
         }
     }
 
     private fun importFrom(uri: Uri) {
         lifecycleScope.launch {
-            try {
-                val text = contentResolver.openInputStream(uri)
-                    ?.bufferedReader()
-                    ?.use { it.readText() }
-                    ?: return@launch
+            val imported = withContext(Dispatchers.IO) {
+                try {
+                    val text = contentResolver.openInputStream(uri)
+                        ?.bufferedReader()
+                        ?.use { it.readText() }
+                        ?: return@withContext -1
 
-                val parsed = Backup.decode(text)
-                val idMap = HashMap<Long, Long>()
-                parsed.folders.forEach { (oldId, folder) ->
-                    idMap[oldId] = repo.folderDao.insert(folder)
+                    val parsed = Backup.decode(text)
+                    val idMap = HashMap<Long, Long>()
+                    parsed.folders.forEach { (oldId, folder) ->
+                        idMap[oldId] = repo.folderDao.insert(folder)
+                    }
+                    val notes = parsed.notes.map { (oldFolderId, note) ->
+                        note.copy(folderId = oldFolderId?.let { idMap[it] })
+                    }
+                    repo.noteDao.insertAll(notes)
+                    notes.size
+                } catch (e: Exception) {
+                    -1
                 }
-                val notes = parsed.notes.map { (oldFolderId, note) ->
-                    note.copy(folderId = oldFolderId?.let { idMap[it] })
-                }
-                repo.noteDao.insertAll(notes)
-                toast(getString(R.string.import_success, notes.size))
-            } catch (e: Exception) {
-                toast(getString(R.string.import_failed))
             }
+            if (imported >= 0) toast(getString(R.string.import_success, imported))
+            else toast(getString(R.string.import_failed))
         }
     }
 

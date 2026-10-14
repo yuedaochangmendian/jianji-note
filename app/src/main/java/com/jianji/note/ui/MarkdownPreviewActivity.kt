@@ -43,7 +43,7 @@ class MarkdownPreviewActivity : BaseActivity() {
             // [img] 占位符由下方的图片区呈现，正文里去掉
             val source = note?.content.orEmpty().replace("[img]", "").trim()
             binding.tvPreview.text = if (note?.markdown == true) {
-                MarkdownRender.render(this@MarkdownPreviewActivity, source, Prefs.fontSize.toFloat())
+                MarkdownRender.render(this@MarkdownPreviewActivity, source)
             } else {
                 source.ifBlank { getString(R.string.preview_empty) }
             }
@@ -52,7 +52,7 @@ class MarkdownPreviewActivity : BaseActivity() {
         }
     }
 
-    private fun renderImages(names: List<String>) {
+    private suspend fun renderImages(names: List<String>) {
         binding.imageColumn.removeAllViews()
         val maxWidth = resources.displayMetrics.widthPixels.coerceAtMost(1080)
         names.forEach { name ->

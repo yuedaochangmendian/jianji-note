@@ -12,8 +12,6 @@
     <color name="md_code_fg">#FF8E24AA</color>
     <color name="md_quote">#FF9E9E9E</color>
     <color name="md_link">#FF1565C0</color>
-    <color name="tool_text">#FF3F51B5</color>
-
     <!-- 强调色：浅色主题下的取值 -->
     <color name="accent_indigo">#FF3F51B5</color>
     <color name="accent_indigo_on">#FFFFFFFF</color>

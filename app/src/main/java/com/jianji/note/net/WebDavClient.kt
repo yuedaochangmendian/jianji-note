@@ -76,14 +76,6 @@ class WebDavClient(
         return execute(request) { Unit }
     }
 
-    /** 先探测目录是否存在，不存在则创建。 */
-    suspend fun ensureDirectory(): WebDavResult<Unit> =
-        when (val probe = execute(propfindRequest("0")) { Unit }) {
-            is WebDavResult.Success -> probe
-            is WebDavResult.Error ->
-                if (probe.httpCode == 404) makeDirectory() else probe
-        }
-
     private fun propfindRequest(depth: String): Request = Request.Builder()
         .url(baseUrl)
         .method("PROPFIND", PROPFIND_BODY.toRequestBody(XML_MEDIA))

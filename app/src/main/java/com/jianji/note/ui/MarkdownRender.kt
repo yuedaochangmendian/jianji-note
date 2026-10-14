@@ -22,7 +22,7 @@ import com.jianji.note.util.MarkdownParser
  */
 object MarkdownRender {
 
-    fun render(context: Context, source: String, textSizeSp: Float): CharSequence {
+    fun render(context: Context, source: String): CharSequence {
         val blocks = MarkdownParser.parse(source)
         val codeBg = ContextCompat.getColor(context, R.color.md_code_bg)
         val codeFg = ContextCompat.getColor(context, R.color.md_code_fg)

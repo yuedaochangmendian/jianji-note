@@ -47,5 +47,4 @@
         <item name="jianjiAccent">@color/accent_rose</item>
     </style>
 
-    <style name="ThemeOverlay.Jianji.Accent" parent="" />
 </resources>

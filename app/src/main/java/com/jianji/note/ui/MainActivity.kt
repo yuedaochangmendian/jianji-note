@@ -169,12 +169,6 @@ class MainActivity : BaseActivity() {
         NoteWidgetProvider.refreshAll(this)
     }
 
-    override fun onStop() {
-        super.onStop()
-        // 离开应用时重新上锁，下次进入需要再次输入密码
-        if (Prefs.passcodeEnabled) Prefs.unlocked = false
-    }
-
     private fun requestUnlockIfNeeded() {
         if (!Prefs.passcodeEnabled || Prefs.unlocked || lockPending) return
         lockPending = true
@@ -233,7 +227,10 @@ class MainActivity : BaseActivity() {
                         sel is Selection.InFolder -> repo.noteDao.observeActiveInFolder(sel.id)
                         sel is Selection.Uncategorized -> repo.noteDao.observeActiveInFolder(null)
                         else -> repo.noteDao.observeActive()
-                    }.map { NoteSort.sort(it, sort) }
+                    // 排序别占着主线程；笔记多了会掉帧
+                }.map { notes ->
+                    withContext(Dispatchers.Default) { NoteSort.sort(notes, sort) }
+                }
                 }.collect { notes ->
                     noteAdapter.submitList(notes)
                     val empty = notes.isEmpty()

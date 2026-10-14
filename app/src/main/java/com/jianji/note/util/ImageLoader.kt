@@ -3,17 +3,22 @@ package com.jianji.note.util
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.ImageView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
-/** 缩略图加载：先读尺寸再按需降采样，避免大图直接解码把内存撑爆。 */
+/**
+ * 缩略图加载：先读尺寸再按需降采样，避免大图直接解码把内存撑爆。
+ * 解码放 IO 线程——预览页是按屏幕宽度解的，大图在主线程解会卡。
+ */
 object ImageLoader {
 
-    fun loadThumbnail(imageView: ImageView, file: File, targetPx: Int) {
+    suspend fun loadThumbnail(imageView: ImageView, file: File, targetPx: Int) {
         if (!file.exists()) {
             imageView.setImageDrawable(null)
             return
         }
-        val bitmap = decodeSampled(file, targetPx)
+        val bitmap = withContext(Dispatchers.IO) { decodeSampled(file, targetPx) }
         imageView.setImageBitmap(bitmap)
     }
 
