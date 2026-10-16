@@ -1,0 +1,39 @@
+name: Deploy website
+
+# 改动 website/ 里的文件并推到 main，就会自动发布到 https://westw00d.top
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'website/**'
+      - 'wrangler.jsonc'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: 部署官网
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: 检查 Cloudflare 令牌
+        id: token
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::未配置 CLOUDFLARE_API_TOKEN，跳过官网部署。"
+          fi
+
+      - name: 发布到 Cloudflare Workers
+        if: steps.token.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy

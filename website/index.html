@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>简记 · 完全离线的安卓便签</title>
+<meta name="description" content="简记（jianji-note）：一个完全离线的安卓便签应用。无广告、无登录、无会员，数据只存在你自己的设备上，想同步可以自己接 WebDAV。" />
+<meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#16161a" media="(prefers-color-scheme: dark)" />
+<meta property="og:title" content="简记 · 完全离线的安卓便签" />
+<meta property="og:description" content="无广告、无登录、无会员。数据只存在你自己的设备上，想同步可以自己接 WebDAV。" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#web">跳到网页版便签</a>
+
+<header class="topbar">
+  <a class="brand" href="/" aria-label="简记 首页">
+    <svg class="brand-mark" viewBox="0 0 108 108" aria-hidden="true">
+      <rect width="108" height="108" rx="26" fill="#3f51b5"/>
+      <path d="M34 26h40v56H34z" fill="#fff"/>
+      <path d="M34 26h40v14H34z" fill="#ffc107"/>
+      <path d="M42 48h24v4H42zM42 58h24v4H42zM42 68h16v4H42z" fill="#b0bec5"/>
+    </svg>
+    <span class="brand-name">简记</span>
+    <span class="brand-sub">jianji-note</span>
+  </a>
+  <nav class="topnav" aria-label="页面导航">
+    <a href="#features">功能</a>
+    <a href="#web">网页版</a>
+    <a href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">GitHub</a>
+    <a class="nav-cta" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest/download/jianji-1.5.0-release.apk" data-apk-link>下载 APK</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">简记 · 完全离线的安卓便签</p>
+    <h1>写下来，<br class="br-mobile" />就不用一直记住了。</h1>
+    <p class="lede">
+      简记是一个把「简单」当回事的便签应用：无广告、无登录、无会员，笔记默认只存在你自己的手机上。
+      想多设备同步，就接自己的 WebDAV —— 而不是交给某个厂商的服务器。
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest/download/jianji-1.5.0-release.apk" data-apk-link>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.4v9.2M6.2 9.4 10 13.2l3.8-3.8M4.6 15.6h10.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        下载 APK
+      </a>
+      <a class="btn btn-ghost" href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">查看源码</a>
+    </div>
+
+    <p class="cta-meta">
+      最新版 <span data-apk-version>v1.5.0</span> · <span data-apk-size>2.7 MB</span> · Android 8.0+ · 完全开源
+    </p>
+  </section>
+
+  <section class="band" aria-label="刻意不做的事">
+    <p>刻意不做的事：<strong>不集成任何统计或广告 SDK</strong> · <strong>不需要账号</strong> · <strong>没有厂商服务器</strong>。</p>
+  </section>
+
+  <section class="features" id="features">
+    <div class="section-head">
+      <h2>它做什么</h2>
+      <p>够用的功能一条不少，用不上的东西一样不加。</p>
+    </div>
+    <ul class="feature-grid">
+      <li>
+        <h3>离线优先</h3>
+        <p>笔记存进本机的 Room 数据库，不需要账号，也不经过任何服务器。网络权限只在你自己配置 WebDAV 时才会用到。</p>
+      </li>
+      <li>
+        <h3>十种列表样式</h3>
+        <p>普通、卡片、网格、摘要、日历、精简、Material、极简、锤子、熊掌记，配三种排序，置顶永远排在最前。</p>
+      </li>
+      <li>
+        <h3>编辑器该有的都有</h3>
+        <p>撤销重做最多 60 步，工具栏能缩进、待办、引用、分隔线、插入时间日期，支持内嵌图片；停止输入 1.2 秒自动落库，退出时再强制保存一次。</p>
+      </li>
+      <li>
+        <h3>Markdown 模式</h3>
+        <p>一键切换，工具栏变成 H1–H3、加粗、代码块、链接；预览页把解析结果渲染成富文本。</p>
+      </li>
+      <li>
+        <h3>锁得住</h3>
+        <p>4 位数字应用密码，离开应用自动重新上锁；少数几条不想被看见的笔记，还能单独加锁。</p>
+      </li>
+      <li>
+        <h3>数据你自己拿着</h3>
+        <p>导出 JSON 备份、单条导出 TXT / Markdown / PDF、分享文本或分享为图片；同步走自己的 WebDAV（坚果云、Nextcloud、自建 NAS）。</p>
+      </li>
+      <li>
+        <h3>长得像你用的</h3>
+        <p>浅色、深色或跟随系统，6 套强调色，正文字号 12–30sp，行距 1.0–2.5 倍，还能换自定义字体和背景。</p>
+      </li>
+      <li>
+        <h3>桌面小组件</h3>
+        <p>按文件夹显示笔记列表的小组件，配色、圆角和条数都能调；长按图标有「新建笔记 / 搜索」的快捷方式。</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="demo" id="web">
+    <div class="section-head">
+      <h2>先试试手感</h2>
+      <p>这是网页版便签，免安装。数据只保存在这个浏览器里 —— 手机上的完整版会写进你自己的设备。</p>
+    </div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <label class="sr-only" for="note-input">写一张便签</label>
+      <textarea id="note-input" rows="1" placeholder="写点什么，Enter 就贴上去…" enterkeyhint="send"></textarea>
+      <button type="submit" class="add-btn" id="add-btn" aria-label="贴上去" disabled>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.2V3.8M4.6 9.2 10 3.8l5.4 5.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+
+    <div class="chips" role="group" aria-label="可以试试这些">
+      <button type="button" class="chip" data-text="今天的待办：">今天的待办</button>
+      <button type="button" class="chip" data-text="一个还没成形的想法：">一个想法</button>
+      <button type="button" class="chip" data-text="记住：">记住一件事</button>
+      <button type="button" class="chip" data-text="想读的东西：">想读的东西</button>
+    </div>
+
+    <p class="kbd-hint"><kbd>Enter</kbd> 贴上去 · <kbd>Shift</kbd> + <kbd>Enter</kbd> 换行 · 点便签上的字可以改</p>
+
+    <div class="board" id="board"></div>
+    <div class="demo-foot">
+      <button type="button" class="text-btn" id="clear-all">清空全部</button>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>把它装到手机上</h2>
+    <p>网页版只是手感预览。文件夹、Markdown、密码锁、WebDAV 备份、桌面小组件，都在 App 里。</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest/download/jianji-1.5.0-release.apk" data-apk-link>下载 APK（<span data-apk-version>v1.5.0</span>）</a>
+      <a class="btn btn-ghost" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest" target="_blank" rel="noreferrer">发行说明与历史版本</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="foot-brand">
+    <svg class="brand-mark sm" viewBox="0 0 108 108" aria-hidden="true">
+      <rect width="108" height="108" rx="26" fill="#3f51b5"/>
+      <path d="M34 26h40v56H34z" fill="#fff"/>
+      <path d="M34 26h40v14H34z" fill="#ffc107"/>
+      <path d="M42 48h24v4H42zM42 58h24v4H42zM42 68h16v4H42z" fill="#b0bec5"/>
+    </svg>
+    <span>简记 · jianji-note</span>
+  </div>
+  <p class="foot-links">
+    <a href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">GitHub 源码</a>
+    <a href="https://github.com/yuedaochangmendian/jianji-note/releases/latest" target="_blank" rel="noreferrer">发行版本</a>
+    <a href="https://github.com/yuedaochangmendian/jianji-note/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">第三方声明</a>
+  </p>
+  <p class="foot-note">
+    © <span id="year">2026</span> jianji-note · Kotlin + Room + Material 3 · 网页版便签的数据只保存在当前浏览器（localStorage）。
+  </p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <span id="toast-text"></span>
+  <button type="button" class="toast-undo" id="toast-undo" hidden>撤销</button>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

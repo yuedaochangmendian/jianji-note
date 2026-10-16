@@ -1,0 +1,11 @@
+{
+  // 简记官网：https://westw00d.top
+  // 纯静态资源站点，页面源码在 ./website，由 GitHub Actions 在 push 时部署到 Cloudflare。
+  "name": "throbbing-art-693e",
+  "account_id": "d3077ca0963467bc86c1ec75d42a63b4",
+  "compatibility_date": "2026-10-16",
+  "assets": {
+    "directory": "./website",
+    "not_found_handling": "404-page"
+  }
+}
