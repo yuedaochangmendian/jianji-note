@@ -7,6 +7,7 @@ on:
     paths:
       - 'website/**'
       - 'wrangler.jsonc'
+      - '.github/scripts/**'
       - '.github/workflows/deploy-website.yml'
   workflow_dispatch:
 
@@ -30,6 +31,12 @@ jobs:
             echo "ready=false" >> "$GITHUB_OUTPUT"
             echo "::warning::未配置 CLOUDFLARE_API_TOKEN，跳过官网部署。"
           fi
+
+      - name: 用最新发行版刷新下载链接
+        if: steps.token.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/sync-release.mjs
 
       - name: 发布到 Cloudflare Workers
         if: steps.token.outputs.ready == 'true'
