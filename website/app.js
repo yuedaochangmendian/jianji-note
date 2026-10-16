@@ -560,6 +560,55 @@ function initMagneticButtons() {
   });
 }
 
+/* 背景视差：指针位置 + 滚动位置合成一个很小的位移，背景色块与胶囊各按 --k 放大 */
+function initBackgroundMotion() {
+  if (prefersReducedMotion()) return;
+
+  const root = document.documentElement;
+  let pointerX = 0;
+  let pointerY = 0;
+  let frame = 0;
+
+  const apply = () => {
+    frame = 0;
+    const scroll = Math.min(window.scrollY || 0, 2600);
+    root.style.setProperty('--par-x', (pointerX * 22).toFixed(2) + 'px');
+    root.style.setProperty('--par-y', (pointerY * 16 - scroll * 0.035).toFixed(2) + 'px');
+  };
+
+  const schedule = () => {
+    if (frame) return;
+    frame = window.requestAnimationFrame(apply);
+  };
+
+  if (window.matchMedia('(hover: hover)').matches) {
+    window.addEventListener(
+      'pointermove',
+      (event) => {
+        const w = window.innerWidth || 1;
+        const h = window.innerHeight || 1;
+        pointerX = (event.clientX / w - 0.5) * 2;
+        pointerY = (event.clientY / h - 0.5) * 2;
+        schedule();
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      'pointerleave',
+      () => {
+        pointerX = 0;
+        pointerY = 0;
+        schedule();
+      },
+      { passive: true }
+    );
+  }
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  apply();
+}
+
 /* 深色模式开关：图标转 180°，选择记在 localStorage */
 function initThemeToggle() {
   const btn = document.getElementById('theme-toggle');
@@ -660,6 +709,7 @@ splitHeadline();
 fitDisplay();
 initReel();
 initMagneticButtons();
+initBackgroundMotion();
 initThemeToggle();
 initMotion();
 initNavState();
