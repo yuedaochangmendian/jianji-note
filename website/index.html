@@ -12,7 +12,15 @@
 <meta property="og:type" content="website" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="/styles.css" />
-<script>document.documentElement.classList.add('js');</script>
+<script>
+(function () {
+  var saved = null;
+  try { saved = localStorage.getItem('jianji.theme'); } catch (e) {}
+  var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.documentElement.classList.add('js');
+})();
+</script>
 </head>
 <body>
 <a class="skip-link" href="#web">跳到网页版便签</a>
@@ -29,11 +37,16 @@
     <span class="brand-sub">jianji-note</span>
   </a>
   <nav class="topnav" aria-label="页面导航">
-    <a class="ink-link" href="#features">功能</a>
-    <a class="ink-link" href="#web">网页版</a>
-    <a class="ink-link" href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">
+    <a href="#features">功能</a>
+    <a href="#web">网页版</a>
+    <a href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">
       GitHub<span class="stars" data-stars hidden></span>
     </a>
+    <button class="tool" id="theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+      <svg class="theme-icon" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M16.3 12.4A6.6 6.6 0 0 1 7.6 3.7a6.8 6.8 0 1 0 8.7 8.7Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </button>
     <a class="nav-cta" href="https://github.com/yuedaochangmendian/jianji-note/releases/download/v1.5.0/jianji-1.5.0-release.apk" data-apk-link>下载 APK</a>
   </nav>
 </header>
@@ -47,12 +60,24 @@
       <span class="pill p4"></span>
     </div>
 
-    <p class="eyebrow anim-rise" style="--d: .02s">简记 · 完全离线的安卓便签</p>
+    <div class="hero-copy">
+      <a class="eyebrow anim-rise" href="#features" style="--d: .02s">
+        <span class="eyebrow-dot" aria-hidden="true"></span>
+        <span>简记 · 完全离线的安卓便签</span>
+        <svg class="eyebrow-arrow" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M4.6 10h10.4M10.4 5.4 15 10l-4.6 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
 
-    <h1 class="hero-title">
-      <span class="line" style="--d: .12s"><span class="line-inner">写下来，</span></span>
-      <span class="line" style="--d: .22s"><span class="line-inner">就不用一直记住了。</span></span>
-    </h1>
+      <h1 class="display" id="hero-title">
+        <span class="line"><span class="word split" data-split="写下来，"></span></span>
+        <span class="line"
+          ><span class="word split" data-split="就不用一直"></span
+          ><button class="reel" id="reel" type="button" aria-label="换一种说法"><span class="reel-track" id="reel-track"><span>记住</span><span>惦记</span><span>翻手机找</span></span></button
+          ><span class="word split" data-split="了。"></span
+        ></span>
+      </h1>
+    </div>
 
     <p class="lede anim-rise" style="--d: .34s">
       简记是一个把「简单」当回事的便签应用：无广告、无登录、无会员，笔记默认只存在你自己的手机上。
@@ -60,16 +85,17 @@
     </p>
 
     <div class="cta-row anim-rise" style="--d: .44s">
-      <a class="btn btn-primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/download/v1.5.0/jianji-1.5.0-release.apk" data-apk-link>
+      <a class="btn primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/download/v1.5.0/jianji-1.5.0-release.apk" data-apk-link>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.4v9.2M6.2 9.4 10 13.2l3.8-3.8M4.6 15.6h10.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        下载 APK
+        <span class="btn-text">
+          <span>下载 APK</span>
+          <span class="btn-sub">最新版 <span data-apk-version>v1.5.0</span> · <span data-apk-size>2.7 MB</span></span>
+        </span>
       </a>
-      <a class="btn btn-ghost" href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">查看源码</a>
+      <a class="btn quiet" href="https://github.com/yuedaochangmendian/jianji-note" target="_blank" rel="noreferrer">查看源码</a>
     </div>
 
-    <p class="cta-meta anim-rise" style="--d: .54s">
-      最新版 <span data-apk-version>v1.5.0</span> · <span data-apk-size>2.7 MB</span> · Android 8.0+ · 完全开源
-    </p>
+    <p class="cta-meta anim-rise" style="--d: .54s">Android 8.0+ · 完全开源 · 不需要账号</p>
   </section>
 
   <section class="band" aria-label="刻意不做的事" data-reveal>
@@ -150,8 +176,14 @@
     <h2>把它装到手机上</h2>
     <p>网页版只是手感预览。文件夹、Markdown、密码锁、WebDAV 备份、桌面小组件，都在 App 里。</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/download/v1.5.0/jianji-1.5.0-release.apk" data-apk-link>下载 APK（<span data-apk-version>v1.5.0</span>）</a>
-      <a class="btn btn-ghost" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest" target="_blank" rel="noreferrer">发行说明与历史版本</a>
+      <a class="btn primary" href="https://github.com/yuedaochangmendian/jianji-note/releases/download/v1.5.0/jianji-1.5.0-release.apk" data-apk-link>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.4v9.2M6.2 9.4 10 13.2l3.8-3.8M4.6 15.6h10.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="btn-text">
+          <span>下载 APK</span>
+          <span class="btn-sub">最新版 <span data-apk-version>v1.5.0</span> · <span data-apk-size>2.7 MB</span></span>
+        </span>
+      </a>
+      <a class="btn quiet" href="https://github.com/yuedaochangmendian/jianji-note/releases/latest" target="_blank" rel="noreferrer">发行说明与历史版本</a>
     </div>
   </section>
 </main>

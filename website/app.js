@@ -383,6 +383,217 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/* 标题：把 data-split 的文字拆成一个个字，交给 CSS 逐字升起（照搬参考站的做法，文字仍留给屏幕阅读器一份） */
+function splitHeadline() {
+  const words = Array.from(document.querySelectorAll('.word.split[data-split]'));
+  if (!words.length) return null;
+
+  const lineDelay = new Map();
+  words.forEach((word) => {
+    const line = word.closest('.line');
+    if (line && !lineDelay.has(line)) lineDelay.set(line, 0.1 + lineDelay.size * 0.1);
+  });
+
+  words.forEach((word) => {
+    const line = word.closest('.line');
+    const delay = lineDelay.get(line) || 0.1;
+    const text = word.dataset.split || '';
+
+    const plain = document.createElement('span');
+    plain.className = 'sr-only';
+    plain.textContent = text;
+
+    const box = document.createElement('span');
+    box.setAttribute('aria-hidden', 'true');
+    Array.from(text).forEach((char, index) => {
+      const span = document.createElement('span');
+      span.className = 'ch';
+      span.textContent = char === ' ' ? '\u00a0' : char;
+      span.style.setProperty('--i', index);
+      span.style.setProperty('--d', delay + 's');
+      box.append(span);
+    });
+
+    word.replaceChildren(plain, box);
+  });
+
+  const reel = document.getElementById('reel');
+  if (reel) {
+    const second = Array.from(lineDelay.values())[1];
+    if (typeof second === 'number') reel.style.setProperty('--d', second + 's');
+  }
+  return lineDelay;
+}
+
+/* 量一个字符串占多少个 em（用 h1 的字体设置），用来算标题字号和 reel 宽度 */
+function makeEmMeasurer(h1) {
+  const probe = document.createElement('span');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText =
+    'position:absolute;left:-9999px;top:0;white-space:nowrap;font-family:' +
+    getComputedStyle(h1).fontFamily +
+    ';font-weight:700;font-size:100px;letter-spacing:-0.05em;';
+  document.body.append(probe);
+  return {
+    em(text) {
+      probe.textContent = text;
+      return probe.getBoundingClientRect().width / 100;
+    },
+    dispose() {
+      probe.remove();
+    },
+  };
+}
+
+/* 标题字号照参考站：min(124px, 容器宽 / 最长一行占的 em 数) */
+function fitDisplay() {
+  const h1 = document.getElementById('hero-title');
+  const holder = h1 && h1.closest('.hero-copy');
+  if (!h1 || !holder) return;
+
+  const measure = makeEmMeasurer(h1);
+  try {
+    const widths = Array.from(h1.querySelectorAll('.line')).map((line) => {
+      let total = 0;
+      line.querySelectorAll('.word.split').forEach((word) => {
+        total += measure.em(word.dataset.split || '');
+      });
+      const track = line.querySelector('.reel-track');
+      if (track) {
+        let widest = 0;
+        Array.from(track.children).forEach((span) => {
+          widest = Math.max(widest, measure.em(span.textContent));
+        });
+        total += widest;
+      }
+      return total;
+    });
+    const widest = Math.max.apply(null, widths);
+    if (Number.isFinite(widest) && widest > 0) {
+      /* 留 1.5% 余量：字体回退时也不会顶到换行 */
+      holder.style.setProperty('--display-em', (widest * 1.015).toFixed(3));
+    }
+  } finally {
+    measure.dispose();
+  }
+}
+
+/* reel：h1 里那颗换词的字，旧词下落、新词从上方弹入，宽度跟着过渡 */
+function initReel() {
+  const reel = document.getElementById('reel');
+  const track = document.getElementById('reel-track');
+  if (!reel || !track) return;
+
+  const words = Array.from(track.children);
+  if (!words.length) return;
+
+  const h1 = document.getElementById('hero-title');
+  const measure = h1 ? makeEmMeasurer(h1) : null;
+  const emOf = measure ? measure.em : (text) => text.length;
+  let index = 0;
+
+  const setWidth = (i) => {
+    const width = emOf(words[i].textContent) + 0.04;
+    if (Number.isFinite(width) && width > 0) reel.style.width = width.toFixed(3) + 'em';
+  };
+
+  const label = (i) => {
+    reel.setAttribute('aria-label', '换一种说法：' + words[i].textContent);
+    reel.title = '换一种说法';
+  };
+
+  const go = (next) => {
+    const from = index;
+    index = ((next % words.length) + words.length) % words.length;
+    if (index === from) return;
+    reel.style.setProperty('--from', from);
+    reel.style.setProperty('--to', index);
+    track.style.setProperty('--i', index);
+    reel.classList.remove('is-dropping');
+    void reel.offsetWidth;
+    reel.classList.add('is-dropping');
+    setWidth(index);
+    label(index);
+  };
+
+  reel.style.setProperty('--i', 0);
+  track.style.setProperty('--i', 0);
+  setWidth(0);
+  label(0);
+
+  reel.addEventListener('click', () => go(index + 1));
+
+  if (prefersReducedMotion()) return;
+
+  let paused = false;
+  const pause = () => { paused = true; };
+  const resume = () => { paused = false; };
+  reel.addEventListener('pointerenter', pause);
+  reel.addEventListener('pointerleave', resume);
+  reel.addEventListener('focus', pause);
+  reel.addEventListener('blur', resume);
+
+  window.setInterval(() => {
+    if (paused || document.hidden) return;
+    go(index + 1);
+  }, 3800);
+}
+
+/* 主按钮：指针靠近时轻轻跟过去（参考站的 --pull-x / --pull-y） */
+function initMagneticButtons() {
+  if (prefersReducedMotion() || !window.matchMedia('(hover: hover)').matches) return;
+  document.querySelectorAll('.btn.primary').forEach((btn) => {
+    btn.addEventListener('pointermove', (event) => {
+      const rect = btn.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dx = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+      const dy = (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+      btn.style.setProperty('--pull-x', (dx * 4).toFixed(2) + 'px');
+      btn.style.setProperty('--pull-y', (dy * 3).toFixed(2) + 'px');
+    });
+    const reset = () => {
+      btn.style.setProperty('--pull-x', '0px');
+      btn.style.setProperty('--pull-y', '0px');
+    };
+    btn.addEventListener('pointerleave', reset);
+    btn.addEventListener('blur', reset);
+  });
+}
+
+/* 深色模式开关：图标转 180°，选择记在 localStorage */
+function initThemeToggle() {
+  const btn = document.getElementById('theme-toggle');
+  const root = document.documentElement;
+  if (!btn) return;
+
+  const sync = () => {
+    const dark = root.dataset.theme === 'dark';
+    const text = dark ? '切换浅色模式' : '切换深色模式';
+    btn.setAttribute('aria-label', text);
+    btn.title = text;
+  };
+
+  sync();
+
+  btn.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('jianji.theme', next); } catch (err) {}
+    sync();
+  });
+
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  if (media.addEventListener) {
+    media.addEventListener('change', (event) => {
+      let saved = null;
+      try { saved = localStorage.getItem('jianji.theme'); } catch (err) {}
+      if (saved) return;
+      root.dataset.theme = event.matches ? 'dark' : 'light';
+      sync();
+    });
+  }
+}
+
 /* 滚动到哪，哪一块才升起来 */
 function initMotion() {
   const targets = document.querySelectorAll('[data-reveal]');
@@ -445,10 +656,26 @@ if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 render();
 boardReady = true;
 autoGrow();
+splitHeadline();
+fitDisplay();
+initReel();
+initMagneticButtons();
+initThemeToggle();
 initMotion();
 initNavState();
 initComposer();
 initStars();
+
+/* 字体真正就位后、以及窗口尺寸变化时，重新量一次标题 */
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => fitDisplay()).catch(() => {});
+}
+
+let titleResizeTimer = null;
+window.addEventListener('resize', () => {
+  window.clearTimeout(titleResizeTimer);
+  titleResizeTimer = window.setTimeout(() => fitDisplay(), 160);
+});
 
 /* 下载按钮指向"最新版"：页面里写死的是 v1.5.0，加载后再跟 GitHub 对一次表。
    拿不到（离线、被限流）就沿用写死的值，不影响页面。 */
