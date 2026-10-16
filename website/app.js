@@ -20,6 +20,8 @@ const toastUndoEl = document.getElementById('toast-undo');
 let notes = load();
 let undoState = null;
 let toastTimer = null;
+let boardReady = false;
+const animatedNotes = new Set();
 
 /* ----------------------------------------------------------- 存储 */
 
@@ -158,16 +160,26 @@ function render() {
     return;
   }
 
-  ordered.forEach((note) => frag.append(noteCard(note)));
+  ordered.forEach((note, index) => frag.append(noteCard(note, index)));
   boardEl.replaceChildren(frag);
 }
 
-function noteCard(note) {
+function noteCard(note, index) {
   const card = document.createElement('article');
   card.className = 'note' + (note.pinned ? ' is-pinned' : '');
   card.dataset.id = note.id;
   card.style.setProperty('--note-bg', note.color);
   card.style.setProperty('--tilt', note.tilt + 'deg');
+
+  if (!animatedNotes.has(note.id)) {
+    animatedNotes.add(note.id);
+    if (boardReady) {
+      card.classList.add('note-enter');
+    } else {
+      card.classList.add('note-initial');
+      card.style.setProperty('--i', index);
+    }
+  }
 
   const body = document.createElement('div');
   body.className = 'note-text';
@@ -365,9 +377,78 @@ window.addEventListener('storage', (event) => {
 
 /* ----------------------------------------------------------- 启动 */
 
+/* ----------------------------------------------------------- 动效 */
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/* 滚动到哪，哪一块才升起来 */
+function initMotion() {
+  const targets = document.querySelectorAll('[data-reveal]');
+  if (!targets.length) return;
+  if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+    targets.forEach((el) => el.classList.add('is-in'));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        observer.unobserve(entry.target);
+      });
+    },
+    { rootMargin: '0px 0px -6% 0px', threshold: 0.1 }
+  );
+  targets.forEach((el) => observer.observe(el));
+}
+
+/* 顶部栏滚动后浮起来（毛玻璃 + 分隔线） */
+function initNavState() {
+  const bar = document.getElementById('topbar');
+  if (!bar) return;
+  const update = () => bar.classList.toggle('is-scrolled', window.scrollY > 8);
+  update();
+  window.addEventListener('scroll', update, { passive: true });
+}
+
+/* 输入框获得焦点时，整条轻轻抬起 */
+function initComposer() {
+  const composer = document.querySelector('.composer');
+  if (!composer) return;
+  composer.addEventListener('focusin', () => composer.classList.add('is-active'));
+  composer.addEventListener('focusout', () => composer.classList.remove('is-active'));
+}
+
+/* 右上角那颗星：拿不到（离线、限流）就干脆不显示 */
+async function initStars() {
+  const el = document.querySelector('[data-stars]');
+  if (!el) return;
+  try {
+    const res = await fetch('https://api.github.com/repos/' + REPO, {
+      headers: { Accept: 'application/vnd.github+json' },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const count = data.stargazers_count;
+    if (typeof count !== 'number' || count <= 0) return;
+    el.textContent =
+      '★ ' + (count >= 10000 ? (count / 10000).toFixed(1).replace(/\.0$/, '') + ' 万' : String(count));
+    el.hidden = false;
+  } catch (err) {
+    /* 静默失败：不显示星数 */
+  }
+}
+
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 render();
+boardReady = true;
 autoGrow();
+initMotion();
+initNavState();
+initComposer();
+initStars();
 
 /* 下载按钮指向"最新版"：页面里写死的是 v1.5.0，加载后再跟 GitHub 对一次表。
    拿不到（离线、被限流）就沿用写死的值，不影响页面。 */
