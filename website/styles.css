@@ -17,9 +17,6 @@
   --amber: #ffc107;
   --teal: #00897b;
   --rose: #c2185b;
-  --band-bg: rgba(255, 193, 7, 0.16);
-  --band-line: rgba(255, 193, 7, 0.38);
-  --band-ink: #6b5714;
   --ring: rgba(63, 81, 181, 0.18);
   --note-ink: #24221f;
   --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.04);
@@ -54,9 +51,6 @@
     --amber: #ffd54f;
     --teal: #4db6ac;
     --rose: #f06292;
-    --band-bg: rgba(255, 213, 79, 0.1);
-    --band-line: rgba(255, 213, 79, 0.22);
-    --band-ink: #e8d493;
     --ring: rgba(140, 158, 255, 0.24);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 14px 34px -16px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -427,20 +421,35 @@ main { display: block; }
   color: var(--muted);
 }
 
-/* ---------------------------------------------------------------- 琥珀横条 */
+/* ---------------------------------------------------------------- 安静的说明行 */
 
 .band {
-  margin-top: clamp(40px, 6vh, 70px);
-  padding: 14px 24px;
-  border-top: 1px solid var(--band-line);
-  border-bottom: 1px solid var(--band-line);
-  background: var(--band-bg);
+  max-width: 1080px;
+  margin: clamp(30px, 4.5vh, 52px) auto 0;
+  padding: 13px 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   text-align: center;
-  font-size: 13.5px;
-  color: var(--band-ink);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--muted);
 }
+
 .band p { margin: 0; }
-.band strong { font-weight: 600; }
+
+.band p::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 9px;
+  border-radius: 2px;
+  background: var(--amber);
+  opacity: 0.85;
+  vertical-align: 1px;
+}
+
+.band strong { font-weight: 500; color: var(--ink-soft); }
 
 /* ---------------------------------------------------------------- 功能 */
 
