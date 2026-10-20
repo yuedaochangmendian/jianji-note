@@ -1,3 +1,17 @@
+## v1.5.1
+
+正文一长，编辑页的滑动像在拖一张纸片。
+
+### 修复：编辑页正文没有惯性，拖不动也停不住
+
+症状：正文超过一屏以后，手指往上拖，内容不跟手；松手没有任何惯性，想往下翻只能再拖几次。
+
+原因在 `TextView` 自己身上。`TextView.onTouchEvent` 依次只有 `mEditor.onTouchEvent`（落光标、选词）和 `mMovement.onTouchEvent`，整套触摸处理里没有 `VelocityTracker`，也就没有 fling；唯一的 `mScroller` 是用在 `bringPointIntoView` 上的，只给「光标跟随」做动画。所以让 `EditText` 自己滚的时候，拖动实际只是在挪光标，视口再一格一格地补过去——手感自然发涩。
+
+改法：正文外面套一层 `ScrollView`（`fillViewport`），`EditText` 的高度改成跟随内容。拖拽、fling、到顶回弹全部交给系统滚动容器，和列表页是同一套物理参数；`EditText` 只负责量出自己的完整高度。
+
+配套一处：键盘弹出/收起会改变正文的可视高度，而 `ScrollView` 不会自己跟着光标走，所以在高度变化时补一次 `bringPointIntoView`，免得光标留在键盘下面。
+
 ## v1.5.0
 
 代码审查后清理的三类问题。

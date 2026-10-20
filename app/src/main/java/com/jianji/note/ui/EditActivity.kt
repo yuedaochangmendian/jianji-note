@@ -97,6 +97,14 @@ class EditActivity : BaseActivity() {
 
         applyTextStyle()
 
+        // 键盘弹出/收起会改变正文的可视高度。视口变矮时光标可能落到键盘下面，
+        // 而 ScrollView 不会自己跟着光标走，这里补一次回正。
+        binding.contentScroll.addOnLayoutChangeListener { v, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top == oldBottom - oldTop) return@addOnLayoutChangeListener
+            val edit = binding.etContent
+            v.post { edit.bringPointIntoView(edit.selectionEnd.coerceAtLeast(0)) }
+        }
+
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit

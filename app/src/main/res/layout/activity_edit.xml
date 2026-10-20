@@ -36,22 +36,41 @@
         android:textColorHint="?android:attr/textColorTertiary"
         android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etContent"
+    <!--
+      正文不能交给 EditText 自己滚：TextView/Editor 的触摸处理里没有惯性与阻尼，
+      手指拖动只会挪光标、再靠 bringPointIntoView 一点点挪视口，手感发涩。
+      套一层 ScrollView，由系统负责拖拽、fling、回弹；EditText 只负责测量出完整高度。
+    -->
+    <ScrollView
+        android:id="@+id/contentScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@null"
-        android:gravity="top|start"
-        android:hint="@string/editor_content_hint"
-        android:inputType="textMultiLine|textCapSentences"
-        android:paddingStart="16dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
+        android:fillViewport="true"
+        android:overScrollMode="ifContentScrolls"
+        android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"
-        android:textColor="?attr/colorOnSurface"
-        android:textColorHint="?android:attr/textColorTertiary" />
+        android:fadeScrollbars="true">
+
+        <EditText
+            android:id="@+id/etContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:gravity="top|start"
+            android:hint="@string/editor_content_hint"
+            android:inputType="textMultiLine|textCapSentences"
+            android:isScrollContainer="false"
+            android:overScrollMode="never"
+            android:paddingStart="16dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp"
+            android:scrollbars="none"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?android:attr/textColorTertiary" />
+
+    </ScrollView>
 
     <HorizontalScrollView
         android:id="@+id/imageStrip"
