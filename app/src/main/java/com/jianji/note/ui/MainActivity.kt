@@ -9,6 +9,9 @@ import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
+import java.io.File
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
@@ -84,6 +87,10 @@ class MainActivity : BaseActivity() {
     private val exportAllMd = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/markdown"),
     ) { uri -> uri?.let { exportAll(it, markdown = true) } }
+
+    private val exportAllZip = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri -> uri?.let { exportAllZip(it) } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -463,6 +470,7 @@ class MainActivity : BaseActivity() {
             R.id.layout_bear -> setLayout(Prefs.LAYOUT_BEAR)
             R.id.export_all_txt -> exportAllTxt.launch("jianji-notes.txt")
             R.id.export_all_md -> exportAllMd.launch("jianji-notes.md")
+            R.id.export_all_zip -> exportAllZip.launch("jianji-notes.zip")
 
             else -> return super.onOptionsItemSelected(item)
         }
@@ -505,6 +513,57 @@ class MainActivity : BaseActivity() {
                     getString(R.string.export_success_named, uri.lastPathSegment.orEmpty())
                 } else {
                     getString(R.string.export_pdf_failed)
+                },
+            )
+        }
+    }
+
+    /** 把全部未删除笔记各导出成一个 .md 文件，整体打包成 ZIP，实现「每条独立成文件」。 */
+    private fun exportAllZip(uri: Uri) {
+        lifecycleScope.launch {
+            val notes = NoteSort.sort(
+                repo.noteDao.loadAll().filter { it.deletedAt == null }, Prefs.sortBy,
+            )
+            val tmp = File(cacheDir, "jianji-export.zip")
+            val ok = withContext(Dispatchers.IO) {
+                try {
+                    tmp.outputStream().use { fos ->
+                        ZipOutputStream(fos).use { zos ->
+                            val used = mutableSetOf<String>()
+                            notes.forEach { note ->
+                                val base = Exporter.fileNameFor(note, "md")
+                                var entryName = base
+                                var n = 1
+                                // 标题相同的笔记文件名会撞车，加 (1)(2) 区分
+                                while (!used.add(entryName)) {
+                                    val dot = base.lastIndexOf('.')
+                                    entryName = if (dot > 0) {
+                                        base.substring(0, dot) + "($n)" + base.substring(dot)
+                                    } else {
+                                        "$base($n)"
+                                    }
+                                    n++
+                                }
+                                zos.putNextEntry(ZipEntry(entryName))
+                                zos.write(Exporter.toMarkdown(note).toByteArray())
+                                zos.closeEntry()
+                            }
+                        }
+                    }
+                    contentResolver.openOutputStream(uri)?.use { out ->
+                        tmp.inputStream().use { it.copyTo(out) }
+                    }
+                    tmp.delete()
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            toast(
+                if (ok) {
+                    getString(R.string.export_success_named, uri.lastPathSegment.orEmpty())
+                } else {
+                    getString(R.string.export_failed)
                 },
             )
         }

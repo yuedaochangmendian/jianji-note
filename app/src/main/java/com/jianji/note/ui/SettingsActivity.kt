@@ -305,11 +305,13 @@ class SettingsActivity : BaseActivity() {
 
                     val parsed = Backup.decode(text)
                     val idMap = HashMap<Long, Long>()
+                    // 重置文件夹 id 为 0，让 Room 重新自增，避免与本地已存在的 id 主键冲突
                     parsed.folders.forEach { (oldId, folder) ->
-                        idMap[oldId] = repo.folderDao.insert(folder)
+                        idMap[oldId] = repo.folderDao.insert(folder.copy(id = 0L))
                     }
+                    // 同理重置笔记 id，否则在同一台设备「导出→再导入」会因主键冲突导致导入失败
                     val notes = parsed.notes.map { (oldFolderId, note) ->
-                        note.copy(folderId = oldFolderId?.let { idMap[it] })
+                        note.copy(id = 0L, folderId = oldFolderId?.let { idMap[it] })
                     }
                     repo.noteDao.insertAll(notes)
                     notes.size

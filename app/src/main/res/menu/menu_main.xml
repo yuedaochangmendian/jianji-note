@@ -85,6 +85,9 @@
             <item
                 android:id="@+id/export_all_md"
                 android:title="@string/export_md" />
+            <item
+                android:id="@+id/export_all_zip"
+                android:title="@string/export_zip" />
         </menu>
     </item>
 

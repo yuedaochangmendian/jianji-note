@@ -48,6 +48,7 @@
     <string name="export_txt">TXT 文本</string>
     <string name="export_md">Markdown</string>
     <string name="export_pdf">PDF</string>
+    <string name="export_zip">ZIP（每篇一个文件）</string>
     <string name="share_as_image">分享为图片</string>
     <string name="export_success_named">已导出：%1$s</string>
     <string name="export_pdf_failed">PDF 生成失败</string>
@@ -140,7 +141,7 @@
     <string name="toast_unpinned">已取消置顶</string>
 
     <!-- 编辑器 -->
-    <string name="editor_title_hint">标题</string>
+    <string name="editor_title_hint">标题（可留空）</string>
     <string name="editor_content_hint">记点什么…</string>
     <string name="editor_count">%1$d 字</string>
     <string name="editor_delete_message">确定删除这条笔记？可以在回收站里找回。</string>
